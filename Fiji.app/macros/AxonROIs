@@ -1,0 +1,5 @@
+run("Analyze Particles...", "size=50-500 circularity=0.50-1.00 show=Masks display exclude clear add");
+roiManager("Show All with labels");
+roiManager("Show All");
+selectWindow("Mask of act_thresh.tif");
+roiManager("Save", "F:\\Data\\2P_Data\\F2444_2020-09-07\\t00010\\suite2p\\plane0\\RoiSet.zip");
