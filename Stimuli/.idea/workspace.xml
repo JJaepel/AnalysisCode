@@ -11,14 +11,23 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="RetWedge.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="RetWedge.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/RetWedge.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="270">
-              <caret line="110" column="23" lean-forward="true" selection-start-line="110" selection-start-column="23" selection-end-line="110" selection-end-column="23" />
+              <caret line="110" column="23" selection-start-line="110" selection-start-column="23" selection-end-line="110" selection-end-column="23" />
               <folding>
                 <element signature="e#0#40#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="driftingGrating.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/driftingGrating.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-170">
+              <caret line="39" column="16" selection-start-line="39" selection-start-column="16" selection-end-line="39" selection-end-column="16" />
             </state>
           </provider>
         </entry>
@@ -38,7 +47,7 @@
       <file leaf-file-name="Ret_Annulus.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Ret_Annulus.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="205">
+            <state relative-caret-position="1802">
               <caret line="108" column="34" selection-start-line="108" selection-start-column="34" selection-end-line="108" selection-end-column="56" />
               <folding>
                 <element signature="e#0#40#0" expanded="true" />
@@ -82,7 +91,6 @@
         <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch.py" />
         <option value="$PROJECT_DIR$/driftingGrating_ori_sf.py" />
         <option value="$PROJECT_DIR$/driftingGrating_ori_tf.py" />
-        <option value="$PROJECT_DIR$/driftingGrating.py" />
         <option value="$PROJECT_DIR$/Chirp.py" />
         <option value="Z:/Dave/Software/psychopy/Dan/continuousStims/continuousBar_withTriggers.py" />
         <option value="$PROJECT_DIR$/driftingGrating_contrast.py" />
@@ -97,7 +105,7 @@
         <option value="$PROJECT_DIR$/RF_local.py" />
         <option value="$PROJECT_DIR$/SparseNoise.py" />
         <option value="$PROJECT_DIR$/driftingGrating_small.py" />
-        <option value="$USER_HOME$/Documents/GIT/retinotopic_mapping/retinotopic_mapping/MonitorSetup.py" />
+        <option value="$PROJECT_DIR$/../../retinotopic_mapping/retinotopic_mapping/MonitorSetup.py" />
         <option value="$PROJECT_DIR$/displaystim.py" />
         <option value="$PROJECT_DIR$/PatchGrating.py" />
         <option value="$PROJECT_DIR$/Patch.py" />
@@ -110,13 +118,14 @@
         <option value="$PROJECT_DIR$/Ret_Annulus.py" />
         <option value="$PROJECT_DIR$/Wedge.py" />
         <option value="$PROJECT_DIR$/RetWedge.py" />
+        <option value="$PROJECT_DIR$/driftingGrating.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="644" />
-    <option name="y" value="43" />
-    <option name="width" value="1498" />
+    <option name="x" value="156" />
+    <option name="y" value="60" />
+    <option name="width" value="1499" />
     <option name="height" value="1040" />
   </component>
   <component name="ProjectView">
@@ -161,25 +170,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.RetWedge">
-    <configuration name="Annulus4" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="Stimuli" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Annulus4.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-    </configuration>
+  <component name="RunManager" selected="Python.driftingGrating">
     <configuration name="Annulus_V2" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Stimuli" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -252,6 +243,24 @@
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
     </configuration>
+    <configuration name="driftingGrating" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="Stimuli" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/driftingGrating.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
     <configuration name="driftingGrating_ori_tf (1)" type="PythonConfigurationType" factoryName="Python">
       <module name="Stimuli" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -293,17 +302,17 @@
       <item itemvalue="Python.driftingGrating_ori_tf (1)" />
       <item itemvalue="Python.Ret_Annulus" />
       <item itemvalue="Python.RetWedge" />
-      <item itemvalue="Python.Annulus4" />
       <item itemvalue="Python.Annulus_V2" />
       <item itemvalue="Python.Wedge" />
+      <item itemvalue="Python.driftingGrating" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.driftingGrating" />
         <item itemvalue="Python.RetWedge" />
         <item itemvalue="Python.Ret_Annulus" />
         <item itemvalue="Python.Wedge" />
         <item itemvalue="Python.Annulus_V2" />
-        <item itemvalue="Python.Annulus4" />
       </list>
     </recent_temporary>
   </component>
@@ -321,18 +330,18 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="644" y="43" width="1498" height="1040" extended-state="0" />
+    <frame x="125" y="48" width="1199" height="832" extended-state="0" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15182187" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15105486" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.51349527" side_tool="true" visible="true" weight="0.36373392" />
+      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.51392406" side_tool="true" visible="true" weight="0.3627586" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.48607594" weight="0.3627586" />
       <window_info anchor="bottom" id="Version Control" order="9" show_stripe_button="false" />
       <window_info anchor="bottom" id="Python Console" order="7" weight="0.32902297" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.48650473" weight="0.36373392" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="8" />
-      <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49959967" weight="0.3974359" />
+      <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -344,21 +353,21 @@
     <layout-to-restore>
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15941012" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Version Control" order="9" show_stripe_button="false" />
       <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49789324" visible="true" weight="0.22057001" />
-      <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Python Console" order="7" weight="0.32902297" />
+      <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39900866" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.5021067" side_tool="true" weight="0.22057001" />
-      <window_info anchor="bottom" id="Version Control" order="9" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Python Console" order="7" weight="0.32902297" />
     </layout-to-restore>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -402,13 +411,7 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Noise.py" />
-    <entry file="file://Z:/Madineh/Psychopy Stim Code/PyUniversalLibrary-20061020/examples/ulai01.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="25" column="66" lean-forward="true" selection-start-line="25" selection-start-column="66" selection-end-line="25" selection-end-column="66" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://Z:/Madineh/Psychopy Stim Code/PyUniversalLibrary-20061020/examples/ulai01.py" />
     <entry file="file://Z:/Madineh/Psychopy Stim Code/Ferret Stims/Madineh/Retinotopy_MS.py" />
     <entry file="file://Z:/Madineh/Psychopy Stim Code/Ferret Stims/Madineh/Hartley_single_screen.py" />
     <entry file="file://$PROJECT_DIR$/driftingGrating_ori_sf_tf.py">
@@ -425,13 +428,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../RDK_lib.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="408">
-          <caret line="27" column="34" selection-start-line="27" selection-start-column="34" selection-end-line="27" selection-end-column="34" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/../RDK_lib.py" />
     <entry file="file://$PROJECT_DIR$/driftingGrating_ori_tf.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="180">
@@ -439,13 +436,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../randomMotionDots_ElementArray_loop.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="446">
-          <caret line="60" column="47" selection-start-line="60" selection-start-column="47" selection-end-line="60" selection-end-column="47" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/../randomMotionDots_ElementArray_loop.py" />
     <entry file="file://$PROJECT_DIR$/staticGrating_ori_sf_phase.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="170">
@@ -460,14 +451,14 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/Documents/GIT/retinotopic_mapping/retinotopic_mapping/MonitorSetup.py">
+    <entry file="file://$PROJECT_DIR$/../../retinotopic_mapping/retinotopic_mapping/MonitorSetup.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="602">
           <caret line="119" column="23" selection-start-line="119" selection-start-column="22" selection-end-line="119" selection-end-column="23" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/Documents/GIT/retinotopic_mapping/retinotopic_mapping/__init__.py">
+    <entry file="file://$PROJECT_DIR$/../../retinotopic_mapping/retinotopic_mapping/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="136">
           <caret line="8" column="25" lean-forward="true" selection-start-line="8" selection-start-column="25" selection-end-line="8" selection-end-column="25" />
@@ -610,7 +601,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/Documents/GIT/retinotopic_mapping/retinotopic_mapping/StimulusRoutines.py">
+    <entry file="file://$PROJECT_DIR$/../../retinotopic_mapping/retinotopic_mapping/StimulusRoutines.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-8177">
           <caret line="105" column="13" selection-start-line="105" selection-start-column="8" selection-end-line="105" selection-end-column="13" />
@@ -631,13 +622,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/driftingGrating.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/FourWedge.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2023">
@@ -650,7 +634,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Ret_Annulus.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="205">
+        <state relative-caret-position="1802">
           <caret line="108" column="34" selection-start-line="108" selection-start-column="34" selection-end-line="108" selection-end-column="56" />
           <folding>
             <element signature="e#0#40#0" expanded="true" />
@@ -661,10 +645,17 @@
     <entry file="file://$PROJECT_DIR$/RetWedge.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="270">
-          <caret line="110" column="23" lean-forward="true" selection-start-line="110" selection-start-column="23" selection-end-line="110" selection-end-column="23" />
+          <caret line="110" column="23" selection-start-line="110" selection-start-column="23" selection-end-line="110" selection-end-column="23" />
           <folding>
             <element signature="e#0#40#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/driftingGrating.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-170">
+          <caret line="39" column="16" selection-start-line="39" selection-start-column="16" selection-end-line="39" selection-end-column="16" />
         </state>
       </provider>
     </entry>

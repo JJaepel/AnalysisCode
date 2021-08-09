@@ -27,7 +27,7 @@ ferret_V3{14} = 'F2275_2018-12-05'; expID_V3{14} = 't00024';
 ferret_V3{15} = 'F2244_2018-09-05'; expID_V3{15} = 't00014';
 ferret_V3{16} = 'F2243_2018-08-27'; expID_V3{16} = 't00012';
 
-adata_dir = 'E:\Data\ImageAnalysis\';
+adata_dir = 'F:\Data\ImageAnalysis\';
 save_dir = [adata_dir filesep 'V1_V3_Ori_Grating' filesep];
 if ~exist(save_dir)
     mkdir(save_dir)

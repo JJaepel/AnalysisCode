@@ -1,14 +1,20 @@
-function [data] = Suite2pAxonExtractorFct(name, folderNumber, server)
+function [data] = Suite2pAxonExtractorFct(analysisParams)
 %% loading experiment data
-if server
+if analysisParams.server
     drive       = 'Z:\Juliane\';
 else
     drive           = 'F:\';
 end
-baseDirectory   = [drive 'Data\2P_data\']; 
-dirName         = [baseDirectory name '\' folderNumber '\suite2p\plane0\reg_tif\'];
+
+baseDirectory   = [drive 'Data\2P_data\'];
 filename        = 'Projection.tif';
-saveDir         = [baseDirectory name '\' folderNumber '\suite2p\plane0\'];
+if analysisParams.level
+    dirName         = [baseDirectory analysisParams.animal '\' analysisParams.name '\suite2p\combined\reg_tif\'];
+    saveDir         = [baseDirectory analysisParams.animal '\' analysisParams.name '\suite2p\combined\'];
+else
+    dirName         = [baseDirectory analysisParams.animal '\' analysisParams.name '\suite2p\plane0\reg_tif\'];
+    saveDir         = [baseDirectory analysisParams.animal '\' analysisParams.name '\suite2p\plane0\'];
+end
 saveFile        = [saveDir filename];
 
 %% read in the tiff files
@@ -44,6 +50,21 @@ for m = 1:length(ROIs)
     data.roi(m).yPos = ROIs(m).y;
     data.roi(m).mask = [ROIs(m).perimeter];
     data.roi(m).name = m;
+    if analysisParams.level
+        if data.roi(m).xPos > 512
+            if data.roi(m).yPos > 512
+                data.roi(m).plane = 4;
+            else
+                data.roi(m).plane = 3;
+            end
+        else
+            if data.roi(m).yPos > 512
+                data.roi(m).plane = 2; 
+            else
+                data.roi(m).plane = 1;
+            end
+        end
+    end
 end
 
 %% extract F trace
@@ -66,6 +87,7 @@ end
 
 %% save meanImg as template
 data.template = double(meanImg);
+save('data.mat', 'data', '-mat') 
 clear meanImg
 clear tifStack
 end

@@ -1,19 +1,26 @@
 function Suite2pAxonExtractor
 %% specify the experiment & parameters
 
-name            = 'F2444_2020-09-07';
-folderNumber    = 't00010';
-server          = 0;
+name            = 'F2444_2020-07-09';
+folderNumber    = 'red';
+server          =  0;
+level           =  0;
 
 if server
-    drive       = 'Z:\Juliane\'
+    drive       = 'Z:\Juliane\';
 else
     drive           = 'F:\';
 end
-baseDirectory   = [drive 'Data\2P_data\']; 
-dirName         = [baseDirectory name '\' folderNumber '\suite2p\plane0\reg_tif\'];
+
+baseDirectory   = [drive 'Data\2P_data\'];
 filename        = 'Projection.tif';
-saveDir         = [baseDirectory name '\' folderNumber '\suite2p\plane0\'];
+if level
+    dirName         = [baseDirectory name '\' folderNumber '\suite2p\combined\reg_tif\'];
+    saveDir         = [baseDirectory name '\' folderNumber '\suite2p\combined\'];
+else
+    dirName         = [baseDirectory name '\' folderNumber '\suite2p\plane0\reg_tif\'];
+    saveDir         = [baseDirectory name '\' folderNumber '\suite2p\plane0\'];
+end
 saveFile        = [saveDir filename];
 
 %% read in the tiff files

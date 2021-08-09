@@ -1,7 +1,7 @@
 from psychopy import visual, logging, core, filters, event, monitors
 import math, random, numpy, time, imp, sys
 
-sys.path.append("Z:/Juliane/Code/Stimuli/triggers")  # path to trigger classes
+sys.path.append("C:/Users/jaepelj/Documents/GIT/AnalysisCode/Stimuli/triggers")  # path to trigger classes
 from os import path
 
 print "initialized"
@@ -16,14 +16,14 @@ newGamma = 0.479
 
 # ---------- Stimulus Parameters ---------- #
 # trials and duration
-numOrientations = 16  # typically 4, 8, or 16#
+numOrientations = 2  # typically 4, 8, or 16#
 # orientations = numpy.arange(0.0,180,180.0/numOrientations) #Remember, ranges in Python do NOT include the final value!
 orientations = numpy.arange(0, 360,
                             360.0 / numOrientations)  # Remember, ranges in Python do NOT include the final value!
 # orientations = numpy.arange(90,91,1);
 # orientations = [90,270]
 
-numTrials = 10  # Run all the stims this many times
+numTrials = 1  # Run all the stims this many times
 
 doBlank = 1  # 0 for no blank stim, 1 to have a blank stim. The blank will have the highest stimcode.
 nBlank = 1  # number of blanks to show per trial.
@@ -33,11 +33,11 @@ if blankpercent > 0:
 changeDirectionAt = 1  # When do we change movement directions? If 1, there should be no reversal. Setting to 0 causes instantaneous reversal, effectively inverting all stimIDs and angles.
 # DO NOT SET TO 0!.
 
-stimDuration = 3
-isi = 3
+stimDuration = 1
+isi = .3
 
 isRandom = 1
-initialDelay = 5  # time in seconds to wait before first stimuli. Set to 0 to begin ASAP.
+initialDelay = .5  # time in seconds to wait before first stimuli. Set to 0 to begin ASAP.
 
 # Grating parameter
 temporalFreq = 3.2
