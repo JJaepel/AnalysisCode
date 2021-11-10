@@ -1,8 +1,8 @@
 %% switch board for analysis variable
 analysisParams = struct;
 %which type of stimulus should it run
-analysisParams.stimType = 4; % 1 = driftingGrating, 2 = OriSf, 3 = OriTf, 4 = Patch, 5 = bino
-analysisParams.dataType = 3; %data type: 1 = cells, 2 = axons, 3 = spines
+analysisParams.stimType = 1; % 1 = driftingGrating, 2 = OriSf, 3 = OriTf, 4 = Patch, 5 = bino
+analysisParams.dataType = 1; %data type: 1 = cells, 2 = axons, 3 = spines
 
 %what should it do?
 analysisParams.reloadData = 1; %should you reload from suite2p/Miji and do baselining?
@@ -10,7 +10,7 @@ analysisParams.reanalyse = 1; %should you reanalyse the data or just plot?
 analysisParams.select = 1; %load only selected data (1, marked in column run) or all data (0)?
 analysisParams.plotROIs = 1;   %should you plot traces for all resp ROIs?
 analysisParams.plotRespROIsOnly = 0; %should you also plot traces for all non-resp ROIs?
-analysisParams.server = 1; %load from the server (1) or the raid (0)
+analysisParams.server = 0; %load from the server (1) or the raid (0)
 analysisParams.makeROIs = 1;
 
 %analysisParameters
@@ -99,6 +99,6 @@ for i = ind
         PatchType = char(exp_info.stimulus{i});
         Patches(analysisParams)
     else
-            GratingAnalysis(analysisParams);
+        GratingAnalysis(analysisParams);
     end
 end

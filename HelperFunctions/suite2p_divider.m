@@ -1,8 +1,8 @@
 clear all
-animal = 'F2338_2019-05-21\';
+animal = 'F2563_2021-08-23\';
 TwoPhontondir = 'F:\Data\2P_Data\';
 base2pDirectory= [TwoPhontondir animal];
-expt_id = 'Imaging site';
+expt_id = 'yellow';
 level = 0;
 
 files = dir([base2pDirectory filesep expt_id]);

@@ -33,6 +33,18 @@ function [analysis, metadata] = ChopStimulusTraceEpi(analysis,metadata,data,fiel
         end
     end
     
+    disp('Applying bandpass filter')
+    ROI = ones(size(stimResponseTrace,3), size(stimResponseTrace,4));
+    for stimID = 1:metadata.StimParams.uniqStims
+        for trial = 1:metadata.StimParams.numTrials-1
+            for frameNum=1:nFrames
+                temp = stimResponseTrace(stimID, trial, :,:, frameNum);
+                tempBpf=LowHighNormalize(double(squeeze(squeeze(temp))),ROI);
+                stimResponseTrace(stimID, trial, :,:, frameNum)=tempBpf;
+            end
+        end
+    end
+    
     analysis.(field).roi.stimResponseTrace = permute(stimResponseTrace,[5 2 1 3 4]);
     %defaultOrder = {'x','y','t','c','n'}; % DO NOT CHANGE this variable!!! This is the way that the code originally structures the stimResponseTrace
                 

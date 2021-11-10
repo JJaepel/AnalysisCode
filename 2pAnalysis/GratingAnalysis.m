@@ -212,8 +212,13 @@ if analysisParams.reanalyse
         
         %check if significantly ori/dir-selective
         vectorRespOri = (allOriResponses'*transpose(exp(sqrt(-1)*2*mod(metadata.StimParams.orientations*pi/180,pi))));
-        [analysis.(analysisParams.field).roi(i).OriSignH, analysis.(analysisParams.field).roi(i).pOriSign] =  hotellingt2test(vectorRespOri, [0 0]);
-        [analysis.(analysisParams.field).roi(i).DirSignH, analysis.(analysisParams.field).roi(i).pDirSign] =  computeDirSignificanceDotProduct(metadata.StimParams.directions, Responses');
+        try
+            [analysis.(analysisParams.field).roi(i).OriSignH, analysis.(analysisParams.field).roi(i).pOriSign] =  hotellingt2test(vectorRespOri, [0 0]);
+            [analysis.(analysisParams.field).roi(i).DirSignH, analysis.(analysisParams.field).roi(i).pDirSign] =  computeDirSignificanceDotProduct(metadata.StimParams.directions, Responses');
+        catch
+            analysis.(analysisParams.field).roi(i).OriSignH = NaN; analysis.(analysisParams.field).roi(i).pOriSign = NaN;
+            analysis.(analysisParams.field).roi(i).DirSignH = NaN; analysis.(analysisParams.field).roi(i).pDirSign = NaN;
+        end
     end
     
     if metadata.StimParams.numTf * metadata.StimParams.numSf > 1 || analysisParams.stimType == 5

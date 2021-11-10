@@ -1,7 +1,11 @@
 function showEpiRespAvgCon(analysis, metadata, trialAveragedMaps, orientationAveragedMaps, directionAveragedMaps, sfAveragedMaps, field, mapType,saveDirectory)
     clippingPercentile = 0.2;
-    clipValue = prctile(trialAveragedMaps(:),[clippingPercentile 100-clippingPercentile]); 
-    spatFreq_cell = strsplit(metadata.StimParams.spatialFreq(2:end-1), ',');
+    clipValue = prctile(trialAveragedMaps(:),[clippingPercentile 100-clippingPercentile]);
+    try
+        spatFreq_cell = strsplit(metadata.StimParams.spatialFreq(2:end-1), ',');
+    catch
+        spatFreq_cell = strsplit(metadata.StimParams.temporalFreq(2:end-1), ',');
+    end
     for j = 1:3
         name = mapType{j};
         switch name

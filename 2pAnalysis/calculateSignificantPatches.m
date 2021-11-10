@@ -5,7 +5,7 @@ analysisParams.StimOnSetDelay = 0.1;
 analysisParams.StimOvershoot = 0.2;
 analysisParams.threshold =2;
 analysisParams.windowLength = 5;  %how many times longer than the stimperiod
-analysisParams.p = 0.01;
+analysisParams.p = 0.005;
 
 saveDirectory = [analysisParams.savedir analysisParams.animal filesep analysisParams.expID filesep];
 figSaveDirectory = [analysisParams.savedir analysisParams.animal filesep analysisParams.expID filesep 'cleanRF'];
@@ -55,7 +55,7 @@ for P = 1:metadata.StimParams.numPatches
     switch stimType
         case 'SparseNoise'
             stimTimesNum = metadata.StimParams.stimTimesAll{P};
-            stimTimesNum = stimTimesNum(randperm(length(stimTimesNum)));
+            %stimTimesNum = stimTimesNum(randperm(length(stimTimesNum)));
             stimTimesNum = stimTimesNum(1:metadata.StimParams.numTrials);
         otherwise
             stimTimesNum = find(metadata.StimParams.StimOnTimes(1,:) == P);
@@ -146,6 +146,7 @@ for nr = 1:length(data.roi)
     try
         analysis.rawF.roi(nr).WTestTrace=WTrace;
     catch
+        disp('Setting WTestTrace to NaN')
         analysis.rawF.roi(nr).WTestTrace = NaN;
     end
 end
@@ -257,7 +258,7 @@ for ind = 1:length(data.roi)
                 analysis.rawF.roi(ind).ONsize=ONsize;
             end
         catch
-            disp('Latency outside analysis window')
+            disp(['Both fields, ON, ROI: ' num2str(ind) ', Latency outside analysis window'])
         end
         
         try
@@ -275,7 +276,7 @@ for ind = 1:length(data.roi)
                 analysis.rawF.roi(ind).OFFsize=OFFsize;
             end
         catch
-            disp('Latency outside analysis window')
+            disp(['Both fields, OFF, ROI: ' num2str(ind) ', Latency outside analysis window'])
         end
         
         if isempty(cleanON) == 0 && isempty(cleanOFF == 0)
@@ -313,21 +314,21 @@ for ind = 1:length(data.roi)
                 disp(['For ROI' num2str(ind) ': Empty RF matrix at latency'])
             else
                 analysis.rawF.roi(ind).ON_field= analysis.rawF.roi(ind).thzRFtempONci(:,:,analysis.rawF.roi(ind).LatON)+analysis.rawF.roi(ind).thzRFtempONci(:,:,analysis.rawF.roi(ind).LatON+1)+analysis.rawF.roi(ind).thzRFtempONci(:,:,analysis.rawF.roi(ind).LatON+2); %this line is necessary to increase the signal since the length of the transient is bigger than one stim period
-                cleanON = PlotCleanRF(ON_field,metadata,analysisParams.threshold, ind, figSaveDirectory);
+                cleanON = PlotCleanRF(analysis.rawF.roi(ind).ON_field,metadata,analysisParams.threshold, ind, figSaveDirectory);
                 ONout1 = bwperim(cleanON);
                 [Ony,Onx]=find(ONout1);
                 [ONperimeter,ONx,ONy,ONsize]= define_fields(ONout1,metadata);
                 analysis.rawF.roi(ind).cleanON=cleanON;
-                analysis.rawF.roi(ind).Latencies = LatON;
+                analysis.rawF.roi(ind).Latencies=[analysis.rawF.roi(ind).Lat analysis.rawF.roi(ind).LatON analysis.rawF.roi(ind).LatOFF];
                 analysis.rawF.roi(ind).ONperimeter=ONperimeter;
                 analysis.rawF.roi(ind).ONx=ONx;
                 analysis.rawF.roi(ind).ONy=ONy;
                 analysis.rawF.roi(ind).ONsize=ONsize;
                 %plot field, perimeter and statistics
-                PlotSingleRFs(cleanON,Significance,analysisParams.DisplayWindow,metadata,ind,figSaveDirectory2,1, Onx, Ony) 
+                PlotSingleRFs(cleanON,analysis.rawF.roi(ind).Significance,analysisParams.DisplayWindow,metadata,ind,figSaveDirectory2,1, Onx, Ony) 
             end
         catch
-            disp('Latency outside analysis window')
+            disp(['ON, ROI: ' num2str(ind) ', Latency outside analysis window'])
         end
         
     elseif isnan(analysis.rawF.roi(ind).LatOFF) == 0
@@ -343,22 +344,22 @@ for ind = 1:length(data.roi)
                 disp(['For ROI' num2str(ind) ': Empty RF matrix at latency'])
             else
                 analysis.rawF.roi(ind).OFF_field= analysis.rawF.roi(ind).thzRFtempOFFci(:,:,analysis.rawF.roi(ind).LatOFF)+analysis.rawF.roi(ind).thzRFtempOFFci(:,:,analysis.rawF.roi(ind).LatOFF+1)+analysis.rawF.roi(ind).thzRFtempOFFci(:,:,analysis.rawF.roi(ind).LatOFF+2); %this line is necessary to increase the signal since the length of the transient is bigger than one stim period
-                cleanOFF=PlotCleanRF(OFF_field,metadata,analysisParams.threshold, ind, figSaveDirectory);
+                cleanOFF=PlotCleanRF(analysis.rawF.roi(ind).OFF_field,metadata,analysisParams.threshold, ind, figSaveDirectory);
                 %calculate perimeter
                 OFFout1 = bwperim(cleanOFF);
                 [Offy,Offx]=find(OFFout1);
                 [OFFperimeter,OFFx,OFFy,OFFsize]= define_fields(OFFout1,metadata);
                 analysis.rawF.roi(ind).cleanOFF=cleanOFF;
-                analysis.rawF.roi(ind).Latencies = LatOFF;
+                analysis.rawF.roi(ind).Latencies=[analysis.rawF.roi(ind).Lat analysis.rawF.roi(ind).LatON analysis.rawF.roi(ind).LatOFF];
                 analysis.rawF.roi(ind).OFFperimeter=OFFperimeter;
                 analysis.rawF.roi(ind).OFFx=OFFx;
                 analysis.rawF.roi(ind).OFFy=OFFy;
                 analysis.rawF.roi(ind).OFFsize=OFFsize;
                 %plot field, perimeter and statistics
-                PlotSingleRFs(cleanOFF,Significance,analysisParams.DisplayWindow,metadata,ind,figSaveDirectory2, 2, Offx, Offy)            
+                PlotSingleRFs(cleanOFF,analysis.rawF.roi(ind).Significance,analysisParams.DisplayWindow,metadata,ind,figSaveDirectory2, 2, Offx, Offy)            
             end
         catch
-            disp('Latency outside analysis window')
+            disp(['OFF, ROI: ' num2str(ind) ', Latency outside analysis window'])
         end
     end
         

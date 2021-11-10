@@ -1,8 +1,8 @@
 close all
 clear all
 
-animal = 'F2537_2021-06-30';
-expt_id =1;
+animal = 'F2537_2021-06-30 ';
+expt_id =3;
 sp2id = expt_id;
 
 close all
@@ -63,6 +63,30 @@ expParam.rawFMeanImg = mean(data.rawF,3);
 expParam.baseImg = mean(data.rawF(:,:,1:50),3);
 expParam.gaussMeanImg = imgaussfilt(mean(data.rawF, 3), 4);
 
+%% get masks for whole window as well as individual areas
+[mov, mixedfilters, percent] = SVDsimple(data.rawF);
+data.PCAs = mixedfilters;
+figure
+imagesc(data.PCAs(:,:,1))
+saveas(gcf, [saveDirectory, '1stPC.png'])
+figure
+imagesc(data.PCAs(:,:,2))
+saveas(gcf, [saveDirectory, '2dPC.png'])
+
+mask = data.PCAs(:,:,1);
+mask(mask > 0) = 0;
+mask(mask < 0) = 1;
+expParam.mask = logical(mask);
+
+mask19 = data.PCAs(:,:,2);
+mask19(mask19<1) = 0;
+expParam.mask19 = logical(mask19);
+
+mask19 = data.PCAs(:,:,2);
+maskV1(maskV1>-200000)=0;
+expParam.maskV1 = logical(maskV1);
+
+data.filt=LowHighNormalize(double(data.rawF), expParam.mask, 1,10);
 %% get ative Frames, compute correlations of the imaging stack and show it
 % Computes correlations of the imaging stack (spontaneous, response, signal, or noise). 
             % The image dimensions can be "N" dimensions, but must be organized such that they are:

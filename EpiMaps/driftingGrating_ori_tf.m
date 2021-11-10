@@ -1,11 +1,14 @@
-animal = 'F2363_2019-09-13';
-expt_id = 15;
+close all
+clear all
+
+animal = 'F2573_2021-09-14';
+expt_id = 6;
 sp2id = expt_id;
 
 close all
-EpiDir = 'E:\Data\Epi\';
-Sp2Dir = 'E:\Data\Spike2Data\';
-SaveDir = 'E:\Data\ImageAnalysis\';
+EpiDir = 'Z:\Juliane\Data\Epi\';
+Sp2Dir = 'Z:\Juliane\Data\Spike2Data\';
+SaveDir = 'Z:\Juliane\Data\ImageAnalysis\';
 
 windowStop=2;
 windowStart=0;
@@ -38,6 +41,10 @@ metadata.StimParams.series=expt_id;
 
 %% load tiffs
 data.rawF = readingImagingData(EpiDirectory);
+data.ROI =true( [size(data.rawF,1),size(data.rawF,2)]); 
+data.rawFMeanImg = mean(data.rawF,3);
+data.baseImg = mean(data.rawF(:,:,1:50),3);
+data.gaussMeanImg = imgaussfilt(mean(data.rawF, 3), 4);
 
 %% create stimCodes
 

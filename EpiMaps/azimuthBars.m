@@ -1,9 +1,8 @@
 close all
 clear all
-addpath(genpath('F:\Code\FromMadineh\ScanImage'));
 
-animal = 'F2537_2021-06-30';
-expt_id =1;
+animal = 'F2573_2021-09-14';
+expt_id = 11;
 sp2id = expt_id;
 
 close all
@@ -15,10 +14,6 @@ windowStop=2;
 windowStart=0;
 pre=1;
 field = 'rawF';
-intrinsic = 0;
-downsample = 1;
-bandpassfilter = 1;
-svd = 0;
 
 
 EpiDirectory = [EpiDir filesep animal filesep 'tseries_' num2str(expt_id) filesep];
@@ -44,48 +39,21 @@ metadata.Imaging=LoadFrameTimes(Sp2dDirectory);
 metadata.StimParams.path=fullfile(Sp2dDirectory);
 metadata.StimParams.series=expt_id;
 
+metadata.StimParams.minAzi = metadata.StimParams.centerPoint(2)-((metadata.StimParams.numStimAzi*metadata.StimParams.stimSize(2)/2))+ metadata.StimParams.stimSize(2)/2;
+metadata.StimParams.Azimuths = linspace(metadata.StimParams.minAzi, metadata.StimParams.minAzi + (metadata.StimParams.numStimAzi-1)*metadata.StimParams.stimSize(2), metadata.StimParams.numStimAzi);
+
 %% load tiffs
-t0=tic;
 data.rawF = readingImagingData(EpiDirectory);
-toc(t0)
-
-%% if applicaple, downsample
-if downsample
-    downsampleFactor = 2;
-    stackSize        = size(data.rawF);
-    stackSize     = floor(stackSize/downsampleFactor);
-    downsampledStack = zeros(stackSize,class(data.rawF));
-    for i=1:downsampleFactor
-        downsampledStack = downsampledStack+data.rawF(i:downsampleFactor:downsampleFactor*stackSize(1),i:downsampleFactor:downsampleFactor*stackSize(2),i:downsampleFactor:downsampleFactor*stackSize(3))/downsampleFactor;
-    end
-    data.rawF = downsampledStack;
-    clear downsampledStack
-end
-if svd
-    [data.rawF, mixedfilters, percent] = SVDsimple(data.rawF);
-end
-
-expParam.rawFMeanImg = mean(data.rawF,3);
-expParam.baseImg = mean(data.rawF(:,:,1:50),3);
-expParam.gaussMeanImg = imgaussfilt(mean(data.rawF, 3), 4);
-expParam.ROI =true( [size(data.rawF,1),size(data.rawF,2)]); 
-
-%% if applicable, bandpassfilter - needs to be done on a chunk base
-if bandpassfilter
-    data.filt=LowHighNormalize(double(data.rawF), expParam.ROI, 1, 5);
-    field = 'filt';
-end
+data.ROI =true( [size(data.rawF,1),size(data.rawF,2)]); 
+data.rawFMeanImg = mean(data.rawF,3);
+data.baseImg = mean(data.rawF(:,:,1:50),3);
+data.gaussMeanImg = imgaussfilt(mean(data.rawF, 3), 4);
 
 %% create stimCodes
 
 numberOfConditions = metadata.StimParams.numberOfStims;
 stimStartIndex = zeros(numberOfConditions,1,'double'); 
 stimStopIndex  = zeros(numberOfConditions,1,'double');
-
-metadata.StimParams.stimDuration = 5;
-metadata.StimParams.isi = 5;
-metadata.StimParams.numTrials = 9;
-
 for i=1:numberOfConditions
     stimStartIndex(i) = find(metadata.Imaging.time>=metadata.StimParams.StimOnTimes(2,i),1,'first');
     stimStopIndex(i) = find(metadata.Imaging.time>=metadata.StimParams.StimOnTimes(2,i)+metadata.StimParams.stimDuration,1,'first');
@@ -93,42 +61,12 @@ end
 metadata.StimParams.stimStartIndex = stimStartIndex;
 metadata.StimParams.stimStopIndex = stimStopIndex;
 
-if downsample
-    metadata.Imaging.time = metadata.Imaging.time(1:downsampleFactor:stackSize(3));
-    metadata.Imaging.rate = metadata.Imaging.rate/downsampleFactor;
-    try
-        metadata.StimParams.stimStartIndex = floor(metadata.StimParams.stimStartIndex/downsampleFactor);
-        metadata.StimParams.stimStopIndex = floor(metadata.StimParams.stimStopIndex/downsampleFactor);
-    catch
-    end
-end
-
-%% if applicaple, downsample
-if intrinsic
-    downsampleFactor = 5;
-    stackSize        = size(data.rawF);
-    stackSize(3)     = floor(stackSize(3)/downsampleFactor);
-    downsampledStack = zeros(stackSize,class(data.rawF));
-    for i=1:downsampleFactor
-        downsampledStack = downsampledStack+data.rawF(:,:,i:downsampleFactor:downsampleFactor*stackSize(3))/downsampleFactor;
-    end
-    data.rawF = downsampledStack;
-
-    metadata.Imaging.time = metadata.Imaging.time(1:downsampleFactor:stackSize(3));
-    metadata.Imaging.rate = metadata.Imaging.rate/downsampleFactor;
-    try
-        metadata.StimParams.stimStartIndex = floor(metadata.StimParams.stimStartIndex/downsampleFactor);
-        metadata.StimParams.stimStopIndex = floor(metadata.StimParams.stimStopIndex/downsampleFactor);
-    catch
-    end
-end
-
 %% chop traces
 analysis = struct;
 disp('Chopping Traces')
 [analysis, metadata] = ChopStimulusTraceEpi(analysis,metadata,data,field);
-analysis.rawFMeanImg = expParam.rawFMeanImg;
-analysis.ROI = expParam.ROI;
+analysis.rawFMeanImg = data.rawFMeanImg;
+analysis.ROI = data.ROI;
 clear data
 
 %% make timecourse
@@ -156,6 +94,46 @@ stimStop  = metadata.StimParams.stimDuration;
 yLimits = get(gca,'YLim');
 rectangle('Position',[stimStart yLimits(2) stimStop-stimStart 0.025*range(yLimits)],'FaceColor','k')
 saveas(gcf, fullfile(saveDirectory, 'Timecourse.png'))
+analysis.(field).roi.stimResponseTrace = permute(analysis.(field).roi.stimResponseTrace, [4 5 3 2 1]);
 
 %% map analysis
-showEpiRespAvg(analysis, metadata,field, saveDirectory);
+includedFrames = [round(metadata.Imaging.rate * metadata.StimParams.isi/2)+1:round(metadata.Imaging.rate * metadata.StimParams.isi/2)+ceil(metadata.Imaging.rate * metadata.StimParams.stimDuration)];
+stimResponseTrace = mean(analysis.(field).roi.stimResponseTrace(:,:,1:end-1,:,includedFrames),5);
+
+trialAveragedMaps = squeeze(median(stimResponseTrace,4));
+trialAveragedMaps(isnan(trialAveragedMaps(:))) = 0;
+
+clippingPercentile = 0.95;
+clipValue = prctile(trialAveragedMaps(:),[clippingPercentile 100-clippingPercentile]); 
+
+AzimuthHLS = stimulusMap(trialAveragedMaps, clipValue);
+AzimuthMap = vectorSum(trialAveragedMaps,2,3);
+
+%% show maps
+nStims = size(trialAveragedMaps,3);
+nRows  = ceil(sqrt(nStims+1));
+nCols  = nRows;
+
+h = makeFigureFullScreen(figure);
+for i = 1:size(trialAveragedMaps,3)
+    figure(h); subplot(nRows,nCols,i);
+        imagesc(trialAveragedMaps(:,:,i));
+        colorbar; 
+        colormap('gray');
+        title(metadata.StimParams.Azimuths(i))
+        axis image; axis off;
+        caxis(clipValue);
+end
+saveas(gcf, fullfile(saveDirectory, 'TrialAveragedMaps.png'))
+
+i = makeFigureFullScreen(figure);
+figure(i); subplot(1,2,1);
+imagesc(polarMap(AzimuthMap)); %'responseImg', responseImg
+axis image; axis off;
+cb=colorbar; colormap(cb, hsv);
+title('Polar azimuth map')
+
+figure(i); subplot(1,2,2);
+imshow(AzimuthHLS)
+title('HLS azimuth map')
+saveas(gcf, fullfile(saveDirectory, 'AzimuthMaps.png'))

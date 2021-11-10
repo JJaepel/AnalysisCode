@@ -10,7 +10,7 @@ regtype = 'downsample';
  
 %downsample opts
 downsampleRates = [1/8, 1/4, 1/2, 1];
-maxMovement = 1/2;
+maxMovement = 1/4;
 
 %1/2 spatial resampling
 imagSpatSamp = 0; 

@@ -1,9 +1,9 @@
 close all
 clear all
 
-animal = 'F2537_2021-06-30'; 
-expt_id = 13;
-sp2id = 19;
+animal = 'F2532_2021-06-23';
+expt_id = 8;
+sp2id = 6;
 quantification = 0;
 
 EpiDir = 'Z:\Juliane\Data\Epi\';
@@ -40,7 +40,7 @@ expParam.Sp2dDirectory = Sp2dDirectory;
 expParam.saveDirectory = saveDirectory;
 
 %% load metadata
-metadata.StimParams=Load_stimparams(Sp2dDirectory);
+metadata.StimParams=LoadStimParams(Sp2dDirectory);
 metadata.Imaging=LoadFrameTimes(Sp2dDirectory);
 metadata.StimParams.path=fullfile(Sp2dDirectory);
 metadata.StimParams.series=expt_id;
@@ -159,6 +159,7 @@ expParam.gaussMeanImg = imgaussfilt(mean(tifStack, 3), 4);
 %% create stimCodes
 metadata.Imaging.startTime = metadata.Imaging.time(1);
 metadata.Imaging.offsetFrameTimes = metadata.Imaging.time-metadata.Imaging.startTime;
+metadata.StimParams.stimConditionOnsetTime = metadata.StimParams.StimOnTimes(2:2:end);
 metadata.Imaging.meanCCDTime = median(diff(metadata.Imaging.offsetFrameTimes));
 stimConditionOnsetTimeCorr = metadata.StimParams.stimConditionOnsetTime-metadata.Imaging.startTime;
 

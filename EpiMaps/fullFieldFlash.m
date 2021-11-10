@@ -1,10 +1,6 @@
-close all
-clear all
-addpath(genpath('F:\Code\FromMadineh\ScanImage'));
-
 animal = 'F2537_2021-06-30';
-expt_id =1;
-sp2id = expt_id;
+expt_id = 18;
+sp2id = 27;
 
 close all
 EpiDir = 'Z:\Juliane\Data\Epi\';
@@ -15,10 +11,6 @@ windowStop=2;
 windowStart=0;
 pre=1;
 field = 'rawF';
-intrinsic = 0;
-downsample = 1;
-bandpassfilter = 1;
-svd = 0;
 
 
 EpiDirectory = [EpiDir filesep animal filesep 'tseries_' num2str(expt_id) filesep];
@@ -43,49 +35,24 @@ metadata.StimParams=LoadStimParams(Sp2dDirectory);
 metadata.Imaging=LoadFrameTimes(Sp2dDirectory);
 metadata.StimParams.path=fullfile(Sp2dDirectory);
 metadata.StimParams.series=expt_id;
+metadata.StimParams.stimDuration = metadata.StimParams.stimDuration/2;
+metadata.StimParams.isi = metadata.StimParams.isi/2;
 
 %% load tiffs
-t0=tic;
 data.rawF = readingImagingData(EpiDirectory);
-toc(t0)
-
-%% if applicaple, downsample
-if downsample
-    downsampleFactor = 2;
-    stackSize        = size(data.rawF);
-    stackSize     = floor(stackSize/downsampleFactor);
-    downsampledStack = zeros(stackSize,class(data.rawF));
-    for i=1:downsampleFactor
-        downsampledStack = downsampledStack+data.rawF(i:downsampleFactor:downsampleFactor*stackSize(1),i:downsampleFactor:downsampleFactor*stackSize(2),i:downsampleFactor:downsampleFactor*stackSize(3))/downsampleFactor;
-    end
-    data.rawF = downsampledStack;
-    clear downsampledStack
-end
-if svd
-    [data.rawF, mixedfilters, percent] = SVDsimple(data.rawF);
-end
-
-expParam.rawFMeanImg = mean(data.rawF,3);
-expParam.baseImg = mean(data.rawF(:,:,1:50),3);
-expParam.gaussMeanImg = imgaussfilt(mean(data.rawF, 3), 4);
-expParam.ROI =true( [size(data.rawF,1),size(data.rawF,2)]); 
-
-%% if applicable, bandpassfilter - needs to be done on a chunk base
-if bandpassfilter
-    data.filt=LowHighNormalize(double(data.rawF), expParam.ROI, 1, 5);
-    field = 'filt';
-end
+data.ROI =true( [size(data.rawF,1),size(data.rawF,2)]); 
+data.rawFMeanImg = mean(data.rawF,3);
+data.baseImg = mean(data.rawF(:,:,1:50),3);
+data.gaussMeanImg = imgaussfilt(mean(data.rawF, 3), 4);
 
 %% create stimCodes
 
 numberOfConditions = metadata.StimParams.numberOfStims;
+metadata.StimParams.StimOnTimes(1,metadata.StimParams.StimOnTimes(1,:)==1)=2;
+metadata.StimParams.StimOnTimes(1,metadata.StimParams.StimOnTimes(1,:)==0)=1;
+metadata.StimParams.uniqStimIds = unique(metadata.StimParams.StimOnTimes(1,:));
 stimStartIndex = zeros(numberOfConditions,1,'double'); 
 stimStopIndex  = zeros(numberOfConditions,1,'double');
-
-metadata.StimParams.stimDuration = 5;
-metadata.StimParams.isi = 5;
-metadata.StimParams.numTrials = 9;
-
 for i=1:numberOfConditions
     stimStartIndex(i) = find(metadata.Imaging.time>=metadata.StimParams.StimOnTimes(2,i),1,'first');
     stimStopIndex(i) = find(metadata.Imaging.time>=metadata.StimParams.StimOnTimes(2,i)+metadata.StimParams.stimDuration,1,'first');
@@ -93,42 +60,12 @@ end
 metadata.StimParams.stimStartIndex = stimStartIndex;
 metadata.StimParams.stimStopIndex = stimStopIndex;
 
-if downsample
-    metadata.Imaging.time = metadata.Imaging.time(1:downsampleFactor:stackSize(3));
-    metadata.Imaging.rate = metadata.Imaging.rate/downsampleFactor;
-    try
-        metadata.StimParams.stimStartIndex = floor(metadata.StimParams.stimStartIndex/downsampleFactor);
-        metadata.StimParams.stimStopIndex = floor(metadata.StimParams.stimStopIndex/downsampleFactor);
-    catch
-    end
-end
-
-%% if applicaple, downsample
-if intrinsic
-    downsampleFactor = 5;
-    stackSize        = size(data.rawF);
-    stackSize(3)     = floor(stackSize(3)/downsampleFactor);
-    downsampledStack = zeros(stackSize,class(data.rawF));
-    for i=1:downsampleFactor
-        downsampledStack = downsampledStack+data.rawF(:,:,i:downsampleFactor:downsampleFactor*stackSize(3))/downsampleFactor;
-    end
-    data.rawF = downsampledStack;
-
-    metadata.Imaging.time = metadata.Imaging.time(1:downsampleFactor:stackSize(3));
-    metadata.Imaging.rate = metadata.Imaging.rate/downsampleFactor;
-    try
-        metadata.StimParams.stimStartIndex = floor(metadata.StimParams.stimStartIndex/downsampleFactor);
-        metadata.StimParams.stimStopIndex = floor(metadata.StimParams.stimStopIndex/downsampleFactor);
-    catch
-    end
-end
-
 %% chop traces
 analysis = struct;
 disp('Chopping Traces')
 [analysis, metadata] = ChopStimulusTraceEpi(analysis,metadata,data,field);
-analysis.rawFMeanImg = expParam.rawFMeanImg;
-analysis.ROI = expParam.ROI;
+analysis.rawFMeanImg = data.rawFMeanImg;
+analysis.ROI = data.ROI;
 clear data
 
 %% make timecourse
@@ -156,6 +93,46 @@ stimStop  = metadata.StimParams.stimDuration;
 yLimits = get(gca,'YLim');
 rectangle('Position',[stimStart yLimits(2) stimStop-stimStart 0.025*range(yLimits)],'FaceColor','k')
 saveas(gcf, fullfile(saveDirectory, 'Timecourse.png'))
+analysis.(field).roi.stimResponseTrace = permute(analysis.(field).roi.stimResponseTrace, [4 5 3 2 1]);
 
 %% map analysis
-showEpiRespAvg(analysis, metadata,field, saveDirectory);
+includedFrames = [round(metadata.Imaging.rate * metadata.StimParams.isi/2)+1:round(metadata.Imaging.rate * metadata.StimParams.isi/2)+ceil(metadata.Imaging.rate * metadata.StimParams.stimDuration)];
+stimResponseTrace = mean(analysis.(field).roi.stimResponseTrace(:,:,1:2,:,includedFrames),5);
+
+trialAveragedMaps = squeeze(median(stimResponseTrace,4));
+trialAveragedMaps(isnan(trialAveragedMaps(:))) = 0;
+
+diffMap = -diff(-trialAveragedMaps,[],3);
+diffMap = (diffMap- min(diffMap(:)))/ (max(diffMap(:))-min(diffMap(:))); 
+rgbImg  = convertRGB(-trialAveragedMaps);
+
+%% show maps
+clippingPercentile = 0.95;
+clipValue = prctile(trialAveragedMaps(:),[clippingPercentile 100-clippingPercentile]); 
+
+h = makeFigureFullScreen(figure);
+for i = 1:size(trialAveragedMaps,3)
+    figure(h); subplot(2,2,i);
+        imagesc(trialAveragedMaps(:,:,i));
+        colorbar; 
+        colormap('gray');
+        if i==1
+            title('ON')
+        else
+            title('OFF')
+        end
+        axis image; axis off;
+        caxis(clipValue);
+end
+
+% Show ON-OFF difference maps
+set(h,'Name','ON-OFF')
+figure(h); subplot(2,2,3);
+    imagesc(diffMap);
+    axis image; axis off; colorbar;
+    title('Difference Map')
+figure(h); subplot(2,2,4);
+    imagesc(rgbImg);
+    axis image; axis off; colorbar;
+    title('Polarization Map')
+saveas(gcf, fullfile(saveDirectory, 'Maps.png'))

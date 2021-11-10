@@ -1,18 +1,18 @@
-function showCorrelationStructure(corrTable,expParam, saveDirectory)
+function showCorrelationStructure(corrTable,analysis, saveDirectory)
     % Show correlation table and an interactive clicker to inspect correlation patterns
 
     % Parse out variable input arguments and load default parameters where necessary
-    if(~isfield(expParam,'ROI')),           expParam.ROI           = ones(size(corrTable,1),1); end
-    if(~isfield(expParam,'clippingRange')), expParam.clippingRange = [-1 1];                    end
-    if(~isfield(expParam,'LUT')),           expParam.LUT           = rwb(64);                   end
-    if(~isfield(expParam,'sortingMatrix')), expParam.sortingMatrix = 1:sum(expParam.ROI(:));     end
+    if(~isfield(analysis,'ROI')),           analysis.ROI           = ones(size(corrTable,1),1); end
+    if(~isfield(analysis,'clippingRange')), analysis.clippingRange = [-1 1];                    end
+    if(~isfield(analysis,'LUT')),           analysis.LUT           = rwb(64);                   end
+    if(~isfield(analysis,'sortingMatrix')), analysis.sortingMatrix = 1:sum(analysis.ROI(:));     end
 
-    expParam.LUT = cat(1,[0,0,0],expParam.LUT);
+    analysis.LUT = cat(1,[0,0,0],analysis.LUT);
 
     % Create a labeled binary mask (Storing the indexed position of each seed point)
-    imsize = size(expParam.ROI);
-    ROILabeled = zeros(size(expParam.ROI));
-    ROILabeled(expParam.ROI) = 1:sum(expParam.ROI(:));
+    imsize = size(analysis.ROI);
+    ROILabeled = zeros(size(analysis.ROI));
+    ROILabeled(analysis.ROI) = 1:sum(analysis.ROI(:));
     index = round(size(corrTable,1)/2); % % Default starting indexed position
     [x,y]=find(ROILabeled==index); %Default starting x- and y- position
 
@@ -20,18 +20,18 @@ function showCorrelationStructure(corrTable,expParam, saveDirectory)
     figure; 
     % Show sorted correlation table
     subplot(1,3,1); 
-        [~,sortingMatrix] = sort(expParam.sortingMatrix(expParam.ROI(:)));
+        [~,sortingMatrix] = sort(analysis.sortingMatrix(analysis.ROI(:)));
         sortedCorrTable = corrTable(sortingMatrix(:),:);
         sortedCorrTable = sortedCorrTable(:,sortingMatrix(:));
         imagesc(sortedCorrTable); 
-        caxis(expParam.clippingRange); 
-        colormap([expParam.LUT]); 
+        caxis(analysis.clippingRange); 
+        colormap([analysis.LUT]); 
         axis image;
         colorbar; 
         
     %show rawImage 
     subplot(1,3,2)
-    imagesc(expParam.rawFMeanImg)
+    imagesc(analysis.rawFMeanImg)
     colormap('gray')
     axis image;
     axis off
@@ -40,8 +40,8 @@ function showCorrelationStructure(corrTable,expParam, saveDirectory)
     subplot(1,3,3);
     while(1)
         try
-            imagesc(recomputeImage(real(corrTable(index,:)),expParam.ROI)); 
-            colormap(expParam.LUT); axis image; caxis(expParam.clippingRange);
+            imagesc(recomputeImage(real(corrTable(index,:)),analysis.ROI)); 
+            colormap(analysis.LUT); axis image; caxis(analysis.clippingRange);
             title(sprintf('x=%d,y=%d,index=%d',round(x),round(y),index)); 
             colorbar
             drawnow;

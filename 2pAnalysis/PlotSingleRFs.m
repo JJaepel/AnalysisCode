@@ -4,8 +4,8 @@ function PlotSingleRFs(SingleRF,Significance,DisplayWindow,metadata,ind,figSaveD
 load('C:\Users\jaepelj\Documents\GIT\AnalysisCode\HelperFunctions\BlueToWhiteToRed2')
 screen_size = get(0, 'ScreenSize');
 
-UsedScreenWidth = metadata.StimParams.numStimAzi * metadata.StimParams.stimSize(1);
-UsedScreenHeight = metadata.StimParams.numStimElev * metadata.StimParams.stimSize(2);
+%UsedScreenWidth = metadata.StimParams.numStimAzi * metadata.StimParams.stimSize(1);
+%UsedScreenHeight = metadata.StimParams.numStimElev * metadata.StimParams.stimSize(2);
 
 %create figure
 f=figure(10000+ind);
@@ -66,3 +66,4 @@ title('Time course and significance over response window')
 saveas(f, fullfile(figSaveDir, ['RFs_lat, single RF, ROI' num2str(ind) '.png']))
 pause(0.1);
 close(f);
+pause(0.1);

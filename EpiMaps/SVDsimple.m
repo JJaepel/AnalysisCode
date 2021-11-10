@@ -1,4 +1,4 @@
-function [mov, mixedfilters, percent] = SVDsimple(Movie, nPCs)
+function [mov, mixedfilters, percent] = SVDsimple(Movie, verbose, nPCs)
 %quick and dirty code for viewing and removing bad PCs from data
 %AG 2020
 
@@ -7,8 +7,8 @@ function [mov, mixedfilters, percent] = SVDsimple(Movie, nPCs)
 %Movie=imresize(Movie,0.5);
 
 
-if nargin < 2 || isempty(nPCs)
-    nPCs=300;
+if nargin < 3 || isempty(nPCs)
+    nPCs=250;
 end
 
 sz=size(Movie);
@@ -42,12 +42,17 @@ movuse = Movie - ones(npix,1) * movtm;
 mixedfilters = reshape(movuse * mixedsig' * Sinv, npix, nPCs);
 mixedfilters = reshape(mixedfilters, sz(1),sz(2),nPCs);
 
-implay(mixedfilters);
+if verbose
+    implay(mixedfilters);
+end
 
-badPCs = input('bad PCs= (example "[1:2]")'); 
-PCuse=setdiff([1:nPCs],badPCs); 
-mixedfilters2 = reshape(mixedfilters(:,:,PCuse),npix,length(PCuse));  
-mov = mixedfilters2 * diag(CovEvals(PCuse).^(1/2)) * mixedsig(PCuse,:);  
-mov = zscore(reshape(mov,npix*sz(3),1));
-mov = reshape(mov, sz); 
+%badPCs = input('bad PCs= (example "[1:2]")'); 
+%PCuse=setdiff([1:nPCs],badPCs); 
+%mixedfilters2 = reshape(mixedfilters(:,:,PCuse),npix,length(PCuse)); 
+%mixedfilters2 = reshape(mixedfilters,npix,length(PCuse)); 
+%mov = mixedfilters2 * diag(CovEvals(PCuse).^(1/2)) * mixedsig(PCuse,:);  
+%mov = zscore(reshape(mov,npix*sz(3),1));
+%mov = reshape(mov, sz); 
+
+mov = [];
 end

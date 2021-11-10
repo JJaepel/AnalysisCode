@@ -37,8 +37,8 @@ file = '2pExpByStimulus.xlsx';
 exp_info = findExpInfo(xls_txt, xls_all);
 
 allExpInd = find(exp_info.run); %all experiments that need to be reanalyzed
-V1Ind =find(exp_info.region == 1); %all V1 exp
-V3Ind = find(exp_info.region == 3); %all V3 exp
+V3Ind = find(cell2mat(exp_info.region) == 3);%all V3 exp
+V1Ind = find(cell2mat(exp_info.region) == 1);%all V1 exp
 
 %reanalyze if necessary
 for i = allExpInd

@@ -46,10 +46,12 @@ function [stim_params]=LoadStimParams(exptpath)
             stim_params.(stimFields{i})= FindStimulusParam(stim_params.file, char(stimFields{i}));
         end
         %correct the stim ids for driftingGrating to ignore the
-        if isfield(stim_params, 'flashInterval')
-            stim_params.stimDuration = stim_params.flashInterval;
-        elseif isfield(stim_params, 'stimDuration')
-            stim_params.stimDuration = stim_params.stimDuration;
+        if isfield(stim_params, 'stimDuration')
+            if ~isempty(stim_params.stimDuration)
+                stim_params.stimDuration = stim_params.stimDuration;
+            else
+                stim_params.stimDuration = stim_params.flashInterval;
+            end
         else 
             stim_params.stimDuration = NaN;
         end

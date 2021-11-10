@@ -18,6 +18,12 @@ end
 try
     comCol = find(contains(xls_txt(1,:), 'comments'),1);
 end
+try
+    EOCol = find(contains(xls_txt(1,:), 'EO'),1);
+end
+try
+    IncludedCol = find(contains(xls_txt(1,:), 'Include'),1);
+end
 
 exp_info = struct;
 
@@ -40,7 +46,7 @@ for i = 2:size(xls_txt,1)
     else
         exp_info.exp_id{k} = ['t0000' num2str(exp)];
     end
-
+    exp_info.exp_series{k} = ['tseries_' num2str(exp)];
     sp2 = xls_all(i,spk2Col);
     if iscell(sp2)
         sp2 = cell2mat(sp2);
@@ -58,10 +64,12 @@ for i = 2:size(xls_txt,1)
         exp_info.sp2_id{k} = ['t0000' num2str(sp2)];
     end
     vol = xls_all(i,volCol);
-    if contains(vol{1}, 'yes')
-        exp_info.vol{k} = 1;
-    elseif contains(vol{1}, 'no')
-        exp_info.vol{k} = 0;
+    try
+        if contains(vol{1}, 'yes')
+            exp_info.vol{k} = 1;
+        elseif contains(vol{1}, 'no')
+            exp_info.vol{k} = 0;
+        end
     end
     exp_info.name{k} = xls_all(i,nameCol);
     runInd = xls_all{i,runCol};
@@ -91,6 +99,12 @@ for i = 2:size(xls_txt,1)
     end
     try
        exp_info.comments{k} = xls_all{i, comCol};
+    end
+    try
+       exp_info.EO{k} = xls_all{i, EOCol};
+    end
+    try
+       exp_info.included{k} = xls_all{i, IncludedCol};
     end
     k = k+1;
 end
