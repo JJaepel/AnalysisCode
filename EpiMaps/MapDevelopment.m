@@ -27,9 +27,9 @@ cocAdultV1 = cocV1(26:30,:);
 
 %% 0.) Set folders, list all experiments and reanalyze if necessary
 adata_dir = 'Z:\Juliane\Data\ImageAnalysis\';
-save_dir = [adata_dir filesep 'MapDevelopment' filesep];
-if ~exist(save_dir)
-    mkdir(save_dir)
+saveDirectory = [adata_dir filesep 'MapDevelopment' filesep];
+if ~exist(saveDirectory)
+    mkdir(saveDirectory)
 end
 
 filePath = 'F:\Organization\Animals\';
@@ -82,28 +82,30 @@ end
 overlapA19Naive = [];
 overlapV1Naive = [];
 for ferret =1:length(NaiveInd)
-    overlapA19Naive = [overlapA19Naive mean(masterNaive{ferret}.analysis.overlapA19(:))];
-    overlapV1Naive = [overlapV1Naive mean(masterNaive{ferret}.analysis.overlapV1(:))];
+    overlapA19Naive = [overlapA19Naive; masterNaive{ferret}.analysis.overlapA19(:)];
+    overlapV1Naive = [overlapV1Naive; masterNaive{ferret}.analysis.overlapV1(:)];
 end
 
 overlapA19Early = [];
 overlapV1Early= [];
 for ferret =1:length(EarlyInd)
-    overlapA19Early = [overlapA19Early mean(masterNaive{ferret}.analysis.overlapA19(:))];
-    overlapV1Early = [overlapV1Early mean(masterNaive{ferret}.analysis.overlapV1(:))];
+    overlapA19Early = [overlapA19Early; masterNaive{ferret}.analysis.overlapA19(:)];
+    overlapV1Early = [overlapV1Early; masterNaive{ferret}.analysis.overlapV1(:)];
 end
 
 overlapA19Adult = [];
 overlapV1Adult= [];
 for ferret =1:length(AdultInd)
-    overlapA19Adult = [overlapA19Adult mean(masterNaive{ferret}.analysis.overlapA19(:))];
-    overlapV1Adult= [overlapV1Adult mean(masterNaive{ferret}.analysis.overlapV1(:))];
+    overlapA19Adult = [overlapA19Adult; masterNaive{ferret}.analysis.overlapA19(:)];
+    overlapV1Adult= [overlapV1Adult; masterNaive{ferret}.analysis.overlapV1(:)];
 end
 
 %% 3.) Plot results
 figure
 subplot(1,2,1)
-boxplot([overlapA19Naive(:), overlapA19Early(:), overlapA19Adult(:)], 'Labels',{'Naive','Early' 'Experienced'})
+allOverlap = [overlapA19Naive(:);overlapA19Early(:); overlapA19Adult(:)];
+boxHelp = [zeros(length(overlapA19Naive(:)), 1); ones(length(overlapA19Early(:)), 1); 2*ones(length(overlapA19Adult(:)), 1)];
+boxplot(allOverlap, boxHelp, 'Labels',{'Naive','Early' 'Experienced'})
 h = findobj(gca,'Tag','Box');
 patch(get(h(1),'XData'),get(h(1),'YData'),cocNaive(4,:),'FaceAlpha',.5);
 patch(get(h(2),'XData'),get(h(2),'YData'),cocEarly(4,:),'FaceAlpha',.5)
@@ -114,7 +116,9 @@ title('A19')
 
 
 subplot(1,2,2)
-boxplot([overlapV1Naive(:), overlapV1Early(:), overlapV1Adult(:)], 'Labels',{'Naive','Early' 'Experienced'})
+allOverlap = [overlapV1Naive(:);overlapV1Early(:); overlapV1Adult(:)];
+boxHelp = [zeros(length(overlapV1Naive(:)), 1); ones(length(overlapV1Early(:)), 1); 2*ones(length(overlapV1Adult(:)), 1)];
+boxplot(allOverlap, boxHelp, 'Labels',{'Naive','Early' 'Experienced'})
 h = findobj(gca,'Tag','Box');
 patch(get(h(1),'XData'),get(h(1),'YData'),cocNaiveV1(4,:),'FaceAlpha',.5);
 patch(get(h(2),'XData'),get(h(2),'YData'),cocEarlyV1(4,:),'FaceAlpha',.5)
@@ -123,3 +127,4 @@ box off
 ylabel('percentage overlap')
 title('V1')
 set(gcf, 'color', 'w');
+saveas(gcf, fullfile(saveDirectory, ['ContourOverlap_Development.png']))

@@ -12,7 +12,7 @@ function [stim_params]=LoadStimParams(exptpath)
     end
     stim_params.StimOnTimes=stim_matrix;
     stim_params.StimOnTimes=stim_params.StimOnTimes(:, 2:end); %discard the very first stim because its garbage
-    files=dir(fullfile(exptpath, 'frametrigger.txt'));
+    files=dir(fullfile(exptpath, 'twophotontimes.txt'));
     files={files.name};
     if ~isempty(files)
         frametimes=load(fullfile(exptpath, 'frametrigger.txt'));

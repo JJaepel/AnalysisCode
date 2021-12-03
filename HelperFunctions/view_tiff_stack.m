@@ -18,7 +18,9 @@ function view_tiff_stack(data, metadata, data2, map)
 
 
 if nargin < 2
-    metadata='no speed info';
+    disp('no speed info');
+    metadata = struct;
+    metadata.Imaging.rate = 1;
 end
 
 if nargin < 3
@@ -138,9 +140,18 @@ switch event.Character
             set(hf,'Position',[temp.Position(1) temp.Position(2) figLength 1.03*figLength*size(data,1)/size(data,2)]);
         end
     case 'm' % make a movie
+        acqfps =1;
         [avi_fname,avi_path]=uiputfile('tiff_stack.avi','save stack as');
-        mov=avifile([avi_path avi_fname],'fps',23,'compraession','none');
-        speed_factor=input('Select speed to save movie at: ');
+        writerObj = VideoWriter([avi_path avi_fname],'MPEG-4');
+        writerObj.FrameRate = acqfps;
+        open(writerObj);
+        allFrames=isequal(input(['Do you want to save all individual frames (Y) or a time speed up?: '],'s'),'Y');
+        if allFrames
+            speed_factor = 1;
+        else
+            writerObj.FrameRate =23;
+            speed_factor=input('Select speed to save movie at: ');
+        end
         frame_bounds=input('Select [start_frame stop_fram], 0 for all frames: ');
         if frame_bounds==0
             frame_bounds=[0 nFrames];
@@ -153,12 +164,10 @@ switch event.Character
                 set(params.h_im_data,'CData',mean(data(:,:,round(cp*(nFrames-1)+1):min(size(data,3),round(cp*(nFrames-1))+speed_factor)),3));
             end
             set(params.h_txt,'string',[num2str(round(cp*(nFrames-1)/metadata.Imaging.rate)+1) ' s']);
-            %set(params.h_f_ax,'clim',[params.clim(1) params.clim(2)*(1-cp*0.95)]);
             frame = getframe(gcf);
-            mov = addframe(mov,frame);
-            %imwrite(frame2im(frame),[avi_path avi_fname],'tiff','writemode','append');
+            writeVideo(writerObj,frame);
         end
-        mov = close(mov);
+        close(writerObj);
     case 'a' % show activity of selected area
         params.as_ind=params.as_ind+1;
         color_ind='mgycrbw';

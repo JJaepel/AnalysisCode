@@ -5,17 +5,14 @@ analysisParams = struct;
 %% switch board for analysis variable
 
 %analysisParameters
-analysisParams.stimType = 5;  % 1 = driftingGrating, 2 = OriSf, 3 = OriTf, 4 = flash, 5 = spontaneous
+analysisParams.stimType = 1;  % 1 = driftingGrating, 2 = OriSf, 3 = OriTf, 4 = flash, 5 = spontaneous
 analysisParams.server = 1;
 analysisParams.select = 1;
 analysisParams.downsample = 2;
 analysisParams.intrinsic = 0;
-if analysisParams.intrinsic
-    analysisParams.downsample = 5;
-end
 analysisParams.pre = 0;
 analysisParams.changeThreshold = 0;
-analysisParams.clean = 1;
+analysisParams.clean = 0;
 
 analysisParams.field = 'rawF';
 analysisParams.register = 1;

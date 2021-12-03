@@ -17,54 +17,26 @@ end
 
 clipValue = prctile(indRespMaps(:),[clippingPercentile 100-clippingPercentile]); 
 
-
 %z scoring data
 disp('Z scoring data')
 mu = nanmean(indRespMaps(:));
 sd = nanstd(indRespMaps(:));
 analysis.(analysisParams.field).zScore = (indRespMaps - mu)/sd;
 
-% figure('units','normalized','outerposition',[0 0 1 1])
-% i = 1;
-% for stim=1:size(indRespMaps,3)-1
-%     for trial = 1:size(indRespMaps,4)
-%         subplot(size(indRespMaps,3)-1, size(indRespMaps,4),i)
-%         imagesc(analysis.(analysisParams.field).zScore(:,:,stim,trial))
-%         if stim == 1
-%            title(['Trial ' num2str(trial)]);
-%         end
-%         axis off
-%         axis equal
-%         if trial == 1
-%             h = text(-20, size(indRespMaps,1),[num2str(metadata.StimParams.directions(stim)) ' deg']);
-%             set(h, 'rotation', 90)
-%         end
-%         i = i+1;
-%         colormap('gray')
-%     end
-% end
-% set(gcf, 'color', 'w');
-% saveas(gcf, fullfile(saveDirectory, 'ZscoredTrials.png'))
-
 %making  contours on trial masks
 contourMaps = zeros(size(indRespMaps,1), size(indRespMaps,2), size(indRespMaps,3),size(indRespMaps,4));
 for stim = 1:size(indRespMaps,3)-1
    for trial=1:size(indRespMaps,4)
-       [c, ~] = contour(analysis.(analysisParams.field).zScore(:,:,stim,trial));
-       cdata = contourdata(c);
-       levelData = find([cdata.level] ==0);
-       analysis.(analysisParams.field).zeroContourXData{stim,trial} = {cdata(levelData).xdata};
-       analysis.(analysisParams.field).zeroContourYData{stim,trial} = {cdata(levelData).ydata};
-       counter = 1;
-       for l = 1:size(analysis.(analysisParams.field).zeroContourXData{stim,trial},2)
-            if size(analysis.(analysisParams.field).zeroContourXData{stim,trial}{l},1) > 5
-                mask(:,:,counter) = poly2mask(analysis.(analysisParams.field).zeroContourXData{stim,trial}{l}, analysis.(analysisParams.field).zeroContourYData{stim,trial}{l}, size(indRespMaps,1), size(indRespMaps,2));
-                counter = counter + 1;          
-            end
-       end
-       temp = sum(mask,3);
-       temp(temp > 1) = 1;
-       contourMaps(:,:,stim, trial) = temp;
+        [c, ~] = contourf(analysis.(analysisParams.field).zScore(:,:,stim,trial));
+        cdata = contourdata(c);
+        levelData = find([cdata.level] ==0);
+        analysis.(analysisParams.field).zeroContourXData{stim,trial} = {cdata(levelData).xdata};
+        analysis.(analysisParams.field).zeroContourYData{stim,trial} = {cdata(levelData).ydata};
+        temp = analysis.(analysisParams.field).zScore(:,:,stim,trial);
+        temp(temp>0) = 1;
+        temp(temp<0) = 0;
+        temp(isnan(temp)) = 0;
+        contourMaps(:,:,stim, trial) = temp;
    end
 end
 
@@ -80,17 +52,29 @@ for stim = 1:size(analysis.(analysisParams.field).trialAveragedMaps,3)
     levelData = find([cdata.level] ==0);
     analysis.(analysisParams.field).zeroContourAvgXData{stim} = {cdata(levelData).xdata};
     analysis.(analysisParams.field).zeroContourAvgYData{stim} = {cdata(levelData).ydata};
-    counter = 1;
-    for l = 1:size(analysis.(analysisParams.field).zeroContourAvgXData{stim},2)
-        if size(analysis.(analysisParams.field).zeroContourAvgXData{stim}{l},1) > 5
-            mask(:,:,counter) = poly2mask(analysis.(analysisParams.field).zeroContourAvgXData{stim}{l}, analysis.(analysisParams.field).zeroContourAvgYData{stim}{l}, size(indRespMaps,1), size(indRespMaps,2));
-            counter = counter + 1;          
+    temp = zeros(size(indRespMaps,1), size(indRespMaps,2));
+    for i = 1:size(analysis.(analysisParams.field).zeroContourAvgXData{stim},2)
+        if size(analysis.(analysisParams.field).zeroContourAvgXData{stim}{i},1) > 5
+            xValues = round(analysis.(analysisParams.field).zeroContourAvgXData{stim}{i});
+            yValues = round(analysis.(analysisParams.field).zeroContourAvgYData{stim}{i});
+            for dots = 1:length(xValues)
+                temp(yValues(dots), xValues(dots)) = 1;
+                temp(yValues(dots)-1, xValues(dots)) = 1;
+                temp(yValues(dots)+1, xValues(dots)) = 1;
+                temp(yValues(dots), xValues(dots)-1) = 1;
+                temp(yValues(dots), xValues(dots)+1) = 1;
+                temp(yValues(dots)-1, xValues(dots)-1) = 1;
+                temp(yValues(dots)+1, xValues(dots)-1) = 1;
+                temp(yValues(dots)-1, xValues(dots)-1) = 1;
+                temp(yValues(dots)-1, xValues(dots)+1) = 1;
+                temp(yValues(dots)-1, xValues(dots)+1) = 1;
+                temp(yValues(dots)+1, xValues(dots)+1) = 1;
+                temp(yValues(dots)+1, xValues(dots)-1) = 1;
+                temp(yValues(dots)+1, xValues(dots)+1) = 1;
+            end
         end
     end
-    temp = sum(mask,3);
-    temp(temp > 1) = 1;
     contourAvgMaps(:,:,stim) = temp;
-    close gcf
 end
 
 %calculating overlap
@@ -99,11 +83,37 @@ analysis.overlapA19 = zeros(size(indRespMaps,3), size(indRespMaps, 4)-1);
 analysis.overlapV1 = zeros(size(indRespMaps,3), size(indRespMaps, 4)-1);
 for stim = 1:size(indRespMaps,3)-1
    for trial=1:size(indRespMaps,4)
-       overlapMask = contourMaps(:,:,stim, trial) & contourAvgMaps(:,:,stim);
-       analysis.overlap(stim, trial) = nnz(overlapMask)/nnz(contourAvgMaps(:,:,stim));
-       analysis.overlapA19(stim,trial) = nnz(overlapMask & analysis.maskA19)/(nnz(contourAvgMaps(:,:,stim)&analysis.maskA19));
-       analysis.overlapV1(stim,trial) = nnz(overlapMask & analysis.maskV1)/(nnz(contourAvgMaps(:,:,stim)&analysis.maskV1));
+       overlapMask = contourMaps(:,:,stim, trial) & contourMaps(:,:,stim, 1);
+       analysis.overlap(stim, trial) = nnz(overlapMask)/nnz(contourMaps(:,:,stim, 1));
+       analysis.overlapA19(stim,trial) = nnz(overlapMask & analysis.maskA19)/(nnz(overlapMask & analysis.maskA19));
+       analysis.overlapV1(stim,trial) = nnz(overlapMask & analysis.maskV1)/(nnz(contourMaps(:,:,stim, 1)&analysis.maskV1));
+       analysis.corr(stim, trial) = corr2(overlapMask,contourMaps(:,:,stim, 1));
+       analysis.corrA19(stim,trial)= corr2(overlapMask & analysis.maskA19,overlapMask & analysis.maskA19);
+       analysis.corrV1(stim,trial)= corr2(overlapMask & analysis.maskV1,overlapMask & analysis.maskV1); 
    end
+end
+
+%calculating chance overlap
+analysis.overlapRandom = zeros(size(indRespMaps,3),1000);
+analysis.overlapRandom = zeros(size(indRespMaps,3),1000);
+analysis.overlapRandom = zeros(size(indRespMaps,3),1000);
+for stim = 1:size(indRespMaps,3)-1
+   for drawing = 1:1000
+       randomStim = randi([1 size(indRespMaps,3)-1]);
+       randomTrial= randi([1 size(indRespMaps,4)]);
+       overlapMask = contourMaps(:,:,randomStim, randomTrial) & contourMaps(:,:,stim, 1);
+       OverlapRandom(drawing) = nnz(overlapMask)/nnz(contourMaps(:,:,stim, 1));
+       OverlapA19Random(drawing)= nnz(overlapMask & analysis.maskA19)/(nnz(contourMaps(:,:,stim, 1)&analysis.maskA19));
+       OverlapV1Random(drawing)= nnz(overlapMask & analysis.maskV1)/(nnz(contourMaps(:,:,stim, 1)&analysis.maskV1));
+       CorrA19Random(drawing)= corr2(overlapMask & analysis.maskA19,contourMaps(:,:,stim, 1)&analysis.maskA19);
+       CorrV1Random(drawing)= corr2(overlapMask & analysis.maskV1,contourMaps(:,:,stim, 1)&analysis.maskV1);
+
+   end
+   analysis.overlapRandom(stim,:) =  OverlapRandom;
+   analysis.overlapA19Random(stim,:) = OverlapA19Random;
+   analysis.overlapV1Random(stim,:) = OverlapV1Random;
+   analysis.corrA19Random(stim,:) = CorrA19Random;
+   analysis.corrlapV1Random(stim,:) = CorrV1Random;
 end
 
 %put a mask over Ori and dir mask
@@ -184,7 +194,7 @@ if mapsWithContours
             if type == 2
                 for i = 1:size(analysis.(analysisParams.field).zeroContourAvgXData{stim},2)
                     if size(analysis.(analysisParams.field).zeroContourAvgXData{stim}{i},1) > 5
-                        plot(analysis.(analysisParams.field).zeroContourAvgXData{stim}{i}, analysis.(analysisParams.field).zeroContourAvgYData{stim}{i}, 'color', [1,1,1])
+                        plot(analysis.(analysisParams.field).zeroContourAvgXData{stim}{i}, analysis.(analysisParams.field).zeroContourAvgYData{stim}{i}, 'color', [0,0,0])
                         hold all
                     end
                     axis off
@@ -219,7 +229,6 @@ if mapsWithContours
 end
 
 disp('Drawing zero contour lines for individual trials')
-
 for stim = 1:size(indRespMaps,3)-1
     figure('units','normalized','outerposition',[0 0 1 1])
     for trial=1:size(indRespMaps,4)
@@ -254,10 +263,14 @@ for stim = 1:size(indRespMaps,3)-1
     title('trial-averaged map')
     
     subplot(nRows,nCol, plotNrQuant)
-    boxplot([analysis.overlapA19(stim,:); analysis.overlapV1(stim,:)]', 'Labels',{'A19','V1'})
+    allOverlap = [analysis.overlapA19(stim,:)'; analysis.overlapA19Random(stim,:)'; analysis.overlapV1(stim,:)'; analysis.overlapV1Random(stim,:)'];
+    boxHelp = [zeros(length(analysis.overlapA19(stim,:)), 1); ones(length(analysis.overlapA19Random(stim,:)), 1); 2*ones(length(analysis.overlapV1(stim,:)), 1); 3*ones(length(analysis.overlapV1Random(stim,:)), 1)];
+    boxplot(allOverlap, boxHelp, 'Labels',{'A19','A19 Random' 'V1', 'V1 Random'})
     h = findobj(gca,'Tag','Box');
-    patch(get(h(1),'XData'),get(h(1),'YData'),cocA19(4,:),'FaceAlpha',.5);
-    patch(get(h(2),'XData'),get(h(2),'YData'),cocV1(4,:),'FaceAlpha',.5);
+    patch(get(h(1),'XData'),get(h(1),'YData'),cocA19(3,:),'FaceAlpha',.75)
+    patch(get(h(2),'XData'),get(h(2),'YData'),cocA19(5,:),'FaceAlpha',.75)
+    patch(get(h(3),'XData'),get(h(3),'YData'),cocV1(3,:),'FaceAlpha',.75)
+    patch(get(h(4),'XData'),get(h(4),'YData'),cocV1(5,:),'FaceAlpha',.75)
     box off
     ylabel('percentage overlap')
     
@@ -315,10 +328,15 @@ axis equal
 title('Direction map')
 
 subplot(nRows,nCol, plotNrQuant)
-boxplot([analysis.overlapA19(:), analysis.overlapV1(:)], 'Labels',{'A19','V1'})
+
+allOverlap = [analysis.overlapA19(:); analysis.overlapA19Random(:); analysis.overlapV1(:); analysis.overlapV1Random(:)];
+boxHelp = [zeros(length(analysis.overlapA19(:)), 1); ones(length(analysis.overlapA19Random(:)), 1); 2*ones(length(analysis.overlapV1(:)), 1); 3*ones(length(analysis.overlapV1Random(:)), 1)];
+boxplot(allOverlap, boxHelp, 'Labels',{'A19','A19 Random' 'V1', 'V1 Random'})
 h = findobj(gca,'Tag','Box');
-patch(get(h(1),'XData'),get(h(1),'YData'),cocA19(4,:),'FaceAlpha',.5);
-patch(get(h(2),'XData'),get(h(2),'YData'),cocV1(4,:),'FaceAlpha',.5)
+patch(get(h(1),'XData'),get(h(1),'YData'),cocA19(3,:),'FaceAlpha',.75)
+patch(get(h(2),'XData'),get(h(2),'YData'),cocA19(5,:),'FaceAlpha',.75)
+patch(get(h(3),'XData'),get(h(3),'YData'),cocV1(3,:),'FaceAlpha',.75)
+patch(get(h(4),'XData'),get(h(4),'YData'),cocV1(5,:),'FaceAlpha',.75)
 box off
 ylabel('percentage overlap')
 set(gcf, 'color', 'w');

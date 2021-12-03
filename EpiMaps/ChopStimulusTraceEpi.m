@@ -1,4 +1,7 @@
-function [analysis, metadata] = ChopStimulusTraceEpi(analysis,metadata,data,field)
+function [analysis, metadata] = ChopStimulusTraceEpi(analysis,metadata,data,field, bandpassfilter)
+    if nargin < 6
+        bandpassfilter = 0;
+    end
     offsetPre  = round(metadata.Imaging.rate * metadata.StimParams.isi/2);
     offsetPost = round(metadata.Imaging.rate * metadata.StimParams.isi/2);
     stimDuration = ceil(metadata.Imaging.rate * metadata.StimParams.stimDuration);
@@ -17,15 +20,22 @@ function [analysis, metadata] = ChopStimulusTraceEpi(analysis,metadata,data,fiel
         stimIndices = find(metadata.StimParams.StimOnTimes(1,:)==stimulus);
 
         % Loop through each trial for the associated stim ID
-        for trialNumber= 1:metadata.StimParams.numTrials-1
+        for trialNumber= 1:metadata.StimParams.numTrials
             startFrame = metadata.StimParams.stimStartIndex(stimIndices(trialNumber));
-            stimResponseTrace(stimID,trialNumber,:,:,:) = single(data.(field)(:,:,startFrame+analysisPeriod));
+            try 
+                stimResponseTrace(stimID,trialNumber,:,:,:) = single(data.(field)(:,:,startFrame+analysisPeriod));
+            catch
+                temp = analysisPeriod;
+                temp(temp < 0) = 1;
+                temp(temp > size(data.rawF,3)) = size(data.rawF,3)-1;
+                stimResponseTrace(stimID,trialNumber,:,:,:) = single(data.(field)(:,:,startFrame+temp));
+            end
         end
     end
     
     disp('Pre-Stimulus Blank')
     for stimID = 1:metadata.StimParams.uniqStims
-        for trial = 1:metadata.StimParams.numTrials-1
+        for trial = 1:metadata.StimParams.numTrials
             blmean = squeeze(nanmean(stimResponseTrace(stimID, trial, :,:, blPeriod), 5));
             for frameNum=1:nFrames
                 stimResponseTrace(stimID, trial, :,:, frameNum)=(squeeze(stimResponseTrace(stimID, trial, :,:, frameNum))-blmean)./blmean;
@@ -34,13 +44,15 @@ function [analysis, metadata] = ChopStimulusTraceEpi(analysis,metadata,data,fiel
     end
     
     disp('Applying bandpass filter')
-    ROI = ones(size(stimResponseTrace,3), size(stimResponseTrace,4));
-    for stimID = 1:metadata.StimParams.uniqStims
-        for trial = 1:metadata.StimParams.numTrials-1
-            for frameNum=1:nFrames
-                temp = stimResponseTrace(stimID, trial, :,:, frameNum);
-                tempBpf=LowHighNormalize(double(squeeze(squeeze(temp))),ROI);
-                stimResponseTrace(stimID, trial, :,:, frameNum)=tempBpf;
+    if bandpassfilter
+        ROI = ones(size(stimResponseTrace,3), size(stimResponseTrace,4));
+        for stimID = 1:metadata.StimParams.uniqStims
+            for trial = 1:metadata.StimParams.numTrials-1
+                for frameNum=1:nFrames
+                    temp = stimResponseTrace(stimID, trial, :,:, frameNum);
+                    tempBpf=LowHighNormalize(double(squeeze(squeeze(temp))),ROI);
+                    stimResponseTrace(stimID, trial, :,:, frameNum)=tempBpf;
+                end
             end
         end
     end

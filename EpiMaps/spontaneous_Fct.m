@@ -3,6 +3,7 @@ close all
 
 %% 0.) define folders and structures
 analysisParams = createFolderEpi(analysisParams);
+analysisParams.clean = 0;
 %clear out all files in folder
 if analysisParams.clean
     disp('Deleting old analysis files')
@@ -59,7 +60,7 @@ analysis.gaussMeanImg = imgaussfilt(mean(data.rawF, 3), 4);
 analysis.ROI =true( [size(data.rawF,1),size(data.rawF,2)]); 
 
 disp('Making masks')
-analysis = makeMasks(data, analysis, analysisParams);
+analysis = makeMasks(data, analysis, analysisParams,0);
 
 %% 4.) Apply dff
 disp('Normalizing Stack')
@@ -102,12 +103,12 @@ end
             %    *Noise        Computes correlations along nCond.
 
 analysis.corrTable = computeCorrelationTable(data.activeFrames,analysis.ROIActive);
-%showCorrelationStructure(analysis.corrTable,analysis, analysisParams.saveDirectory)
+showCorrelationStructure(analysis.corrTable,analysis, analysis.ROIactive, analysisParams.saveDirectory)
 
-%% 8.) Calculate fracture lines
+%% 8.) Calculate fracture lines and saving data
 %temporaly clear workspace
 corrTable = analysis.corrTable;
-activeFrames = data.activeFrames(:,:,1);
+activeFrames = data.activeFrames;
 ROIActive = analysis.ROIActive;
 save(fullfile(analysisParams.saveDirectory, 'AnaData.mat'),'-v7.3', 'metadata', 'analysisParams', 'analysis');
 
@@ -116,10 +117,12 @@ clear analysis
 clear mixedfilters
 
 disp('Calculating fracture maps')
-analysisParams.sizeMap = 3; 
-fractureMap = makeFractureLines(ROIActive, activeFrames, corrTable, analysisParams.sizeMap, analysisParams);
+sizeOptions = [1,3,5,7];
+for sz = 1:length(sizeOptions)
+    fractureMap{sz} = makeFractureLines(ROIActive, activeFrames, corrTable, sizeOptions(sz), analysisParams);
+end
 
 %% 9.) Save data
 disp('Saving analyzed data')
-save(fullfile(analysisParams.saveDirectory, 'AnaData.mat'),'-v7.3', 'metadata', 'analysisParams', 'analysis');
+save(fullfile(analysisParams.saveDirectory, 'Fractures.mat'),'-v7.3', 'fractureMap');
 

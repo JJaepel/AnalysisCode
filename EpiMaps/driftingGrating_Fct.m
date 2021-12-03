@@ -11,13 +11,8 @@ end
 
 %% 1.) Load tiffs
 t0=tic;
-data.rawF = readingImagingData(analysisParams.EpiDirectory);
+data.rawF = readingImagingData(analysisParams.EpiDirectory, analysisParams.downsample);
 toc(t0)
-
-% if applicaple, downsample
-if analysisParams.downsample > 1
-    data = downSampleData(data, analysisParams.downsample);
-end
 
 %% 2.) load metadata
 metadata.StimParams=LoadStimParams(analysisParams.Sp2dDirectory);
@@ -25,7 +20,7 @@ metadata.Imaging=LoadFrameTimes(analysisParams.Sp2dDirectory);
 metadata.StimParams.path=fullfile(analysisParams.Sp2dDirectory);
 
 %create StimCodes
-metadata = createStimCodesEpi(metadata, analysisParams, size(data.rawF,3));
+metadata = createStimCodesEpi(metadata);
 
 %% 3.) get ROI of window and of subregions
 analysis = struct;
@@ -33,7 +28,7 @@ analysis.rawFMeanImg = mean(data.rawF,3);
 analysis.baseImg = mean(data.rawF(:,:,1:50),3);
 analysis.gaussMeanImg = imgaussfilt(mean(data.rawF, 3), 4);
 analysis.ROI =true( [size(data.rawF,1),size(data.rawF,2)]); 
-analysis = makeMasks(data, analysis, analysisParams);
+analysis = makeMasks(data, analysis, analysisParams,1);
 
 %% 4.) Chop traces
 disp('Chopping Traces')

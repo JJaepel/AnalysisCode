@@ -1,8 +1,7 @@
-function showCorrelationStructure(corrTable,analysis, saveDirectory)
+function showCorrelationStructure(corrTable,ROI, analysis, saveDirectory)
     % Show correlation table and an interactive clicker to inspect correlation patterns
 
     % Parse out variable input arguments and load default parameters where necessary
-    if(~isfield(analysis,'ROI')),           analysis.ROI           = ones(size(corrTable,1),1); end
     if(~isfield(analysis,'clippingRange')), analysis.clippingRange = [-1 1];                    end
     if(~isfield(analysis,'LUT')),           analysis.LUT           = rwb(64);                   end
     if(~isfield(analysis,'sortingMatrix')), analysis.sortingMatrix = 1:sum(analysis.ROI(:));     end
@@ -10,9 +9,8 @@ function showCorrelationStructure(corrTable,analysis, saveDirectory)
     analysis.LUT = cat(1,[0,0,0],analysis.LUT);
 
     % Create a labeled binary mask (Storing the indexed position of each seed point)
-    imsize = size(analysis.ROI);
-    ROILabeled = zeros(size(analysis.ROI));
-    ROILabeled(analysis.ROI) = 1:sum(analysis.ROI(:));
+    ROILabeled = zeros(size(ROI));
+    ROILabeled(ROI) = 1:sum(ROI(:));
     index = round(size(corrTable,1)/2); % % Default starting indexed position
     [x,y]=find(ROILabeled==index); %Default starting x- and y- position
 
@@ -20,7 +18,7 @@ function showCorrelationStructure(corrTable,analysis, saveDirectory)
     figure; 
     % Show sorted correlation table
     subplot(1,3,1); 
-        [~,sortingMatrix] = sort(analysis.sortingMatrix(analysis.ROI(:)));
+        [~,sortingMatrix] = sort(analysis.sortingMatrix(analysis.ROIActive(:)));
         sortedCorrTable = corrTable(sortingMatrix(:),:);
         sortedCorrTable = sortedCorrTable(:,sortingMatrix(:));
         imagesc(sortedCorrTable); 

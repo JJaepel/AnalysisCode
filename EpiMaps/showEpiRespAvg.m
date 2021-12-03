@@ -7,11 +7,18 @@ function analysis = showEpiRespAvg(analysis, metadata, field, saveDirectory)
     trialAveragedMaps(isnan(trialAveragedMaps(:))) = 0;
     analysis.(field).trialAveragedMaps = trialAveragedMaps;
     
-    analysis.(field).orientationMap = times(vectorSum(trialAveragedMaps,2,3), analysis.maskBV);
-    analysis.(field).directionMap   = times(vectorSum(trialAveragedMaps,1,3), analysis.maskBV);
+    try
+        analysis.(field).orientationMap = times(vectorSum(trialAveragedMaps,2,3), analysis.maskBV);
+        analysis.(field).directionMap   = times(vectorSum(trialAveragedMaps,1,3), analysis.maskBV);
+    catch
+        analysis.(field).orientationMap = vectorSum(trialAveragedMaps,2,3);
+        analysis.(field).directionMap   = vectorSum(trialAveragedMaps,1,3); 
+    end
 
+    collapsedData = permute(trialAveragedMaps, [3, 1, 2]);
     clippingPercentile = 0.2;
-    clipValue = prctile(trialAveragedMaps(:),[clippingPercentile 100-clippingPercentile]); 
+    clipValue = prctile(collapsedData(:), [clippingPercentile 100-clippingPercentile]);
+    clear collapsedData
     
     mapType = {'Orientation','Direction'};
     for j = 1:2 
@@ -39,13 +46,15 @@ function analysis = showEpiRespAvg(analysis, metadata, field, saveDirectory)
         for i = 1:nStims
             figure(h); subplot(nRows,nCols,i);
                 stimMap = mapSet(:,:,i);
-                stimMap(~analysis.maskBV(:)) = NaN;
+                try
+                    stimMap(~analysis.maskBV(:)) = NaN;
+                end
                 imagesc(stimMap);
                 colorbar; 
                 colormap('gray');
                 title(num2str(thetas(i)))
                 axis image; axis off;
-                %caxis(clipValue);
+                caxis(clipValue);
         end
 
         % Show polar map
@@ -76,7 +85,7 @@ function analysis = showEpiRespAvg(analysis, metadata, field, saveDirectory)
         title(sprintf('%s hsv map',name))
         set(gcf, 'color', 'w');
         saveas(gcf, fullfile(saveDirectory, [fieldName '_Magnitude_HSV.png']))
-        close gcf
+        %close gcf
     end
     
     analysis.(field).roi.stimResponseTrace = permute(analysis.(field).roi.stimResponseTrace, [5 4 3 1 2]);

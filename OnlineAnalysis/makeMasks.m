@@ -1,4 +1,4 @@
-function analysis = makeMasks(data, analysis, analysisParams)
+function analysis = makeMasks(data, analysis, analysisParams, verbose)
 
 %use PCA to make masks, 1st dimension is window, 2nd is areas
 [~, mixedfilters, ~] = SVDsimple(data.rawF,1);
@@ -38,13 +38,19 @@ negMask(negMask < 0) = 1;
 figure
 imagesc(tempMask)
 colorbar
-posMask19=isequal(input('Are positive correlations in area 19? (Y/N): ','s'),'Y');
-if posMask19
+if verbose
+    posMask19=isequal(input('Are positive correlations in area 19? (Y/N): ','s'),'Y');
+    if posMask19
+        analysis.maskV1 = negMask;
+        analysis.maskA19 = posMask;
+    else
+        analysis.maskV1 = posMask;
+        analysis.maskA19 = negMask;
+    end
+else
+    disp('Positive correlations = A19 - Please change if needed!')
     analysis.maskV1 = negMask;
     analysis.maskA19 = posMask;
-else
-    analysis.maskV1 = posMask;
-    analysis.maskA19 = negMask;
 end
 saveas(gcf, [analysisParams.saveDirectory, 'Mask2ndPCA_Raw.png'])
 close gcf
