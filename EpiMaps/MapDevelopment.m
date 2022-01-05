@@ -5,11 +5,9 @@ analysisParams.stimType = 1;  % 1 = driftingGrating, 2 = OriSf, 3 = OriTf
 analysisParams.server = 1;
 analysisParams.select = 1;
 analysisParams.downsample = 2;
+analysisParams.bandpass = 1;
 analysisParams.intrinsic = 0;
-if analysisParams.intrinsic
-    analysisParams.downsample = 5;
-end
-analysisParams.pre = 0;
+analysisParams.pre = 1;
 analysisParams.changeThreshold = 0;
 analysisParams.clean = 1;
 
@@ -81,26 +79,40 @@ end
 %% 2). Data consolidation
 overlapA19Naive = [];
 overlapV1Naive = [];
+corrA19Naive = [];
+corrV1Naive = [];
+
 for ferret =1:length(NaiveInd)
     overlapA19Naive = [overlapA19Naive; masterNaive{ferret}.analysis.overlapA19(:)];
     overlapV1Naive = [overlapV1Naive; masterNaive{ferret}.analysis.overlapV1(:)];
+    corrA19Naive = [corrA19Naive; masterNaive{ferret}.analysis.corrA19(:)];
+    corrV1Naive = [corrV1Naive; masterNaive{ferret}.analysis.corrV1(:)];
 end
 
 overlapA19Early = [];
 overlapV1Early= [];
+corrA19Early = [];
+corrV1Early = [];
 for ferret =1:length(EarlyInd)
     overlapA19Early = [overlapA19Early; masterNaive{ferret}.analysis.overlapA19(:)];
     overlapV1Early = [overlapV1Early; masterNaive{ferret}.analysis.overlapV1(:)];
+    corrA19Early = [corrA19Early; masterNaive{ferret}.analysis.corrA19(:)];
+    corrV1Early = [corrV1Early; masterNaive{ferret}.analysis.corrV1(:)];
 end
 
 overlapA19Adult = [];
 overlapV1Adult= [];
+corrA19Adult = [];
+corrV1Adult = [];
 for ferret =1:length(AdultInd)
     overlapA19Adult = [overlapA19Adult; masterNaive{ferret}.analysis.overlapA19(:)];
     overlapV1Adult= [overlapV1Adult; masterNaive{ferret}.analysis.overlapV1(:)];
+    corrA19Adult = [corrA19Adult; masterNaive{ferret}.analysis.corrA19(:)];
+    corrV1Adult = [corrV1Adult; masterNaive{ferret}.analysis.corrV1(:)];
 end
 
 %% 3.) Plot results
+%overlap
 figure
 subplot(1,2,1)
 allOverlap = [overlapA19Naive(:);overlapA19Early(:); overlapA19Adult(:)];
@@ -128,3 +140,32 @@ ylabel('percentage overlap')
 title('V1')
 set(gcf, 'color', 'w');
 saveas(gcf, fullfile(saveDirectory, ['ContourOverlap_Development.png']))
+
+% correlation
+figure
+subplot(1,2,1)
+allOverlap = [corrA19Naive(:);corrA19Early(:); corrA19Adult(:)];
+boxHelp = [zeros(length(corrA19Naive(:)), 1); ones(length(corrA19Early(:)), 1); 2*ones(length(corrA19Adult(:)), 1)];
+boxplot(allOverlap, boxHelp, 'Labels',{'Naive','Early' 'Experienced'})
+h = findobj(gca,'Tag','Box');
+patch(get(h(1),'XData'),get(h(1),'YData'),cocNaive(4,:),'FaceAlpha',.5);
+patch(get(h(2),'XData'),get(h(2),'YData'),cocEarly(4,:),'FaceAlpha',.5)
+patch(get(h(3),'XData'),get(h(3),'YData'),cocAdult(4,:),'FaceAlpha',.5)
+box off
+ylabel('correlation')
+title('A19')
+
+
+subplot(1,2,2)
+allOverlap = [corrV1Naive(:);corrV1Early(:); corrV1Adult(:)];
+boxHelp = [zeros(length(corrV1Naive(:)), 1); ones(length(corrV1Early(:)), 1); 2*ones(length(corrV1Adult(:)), 1)];
+boxplot(allOverlap, boxHelp, 'Labels',{'Naive','Early' 'Experienced'})
+h = findobj(gca,'Tag','Box');
+patch(get(h(1),'XData'),get(h(1),'YData'),cocNaiveV1(4,:),'FaceAlpha',.5);
+patch(get(h(2),'XData'),get(h(2),'YData'),cocEarlyV1(4,:),'FaceAlpha',.5)
+patch(get(h(3),'XData'),get(h(3),'YData'),cocAdultV1(4,:),'FaceAlpha',.5)
+box off
+ylabel('correlation')
+title('V1')
+set(gcf, 'color', 'w');
+saveas(gcf, fullfile(saveDirectory, ['Correlation_Development.png']))

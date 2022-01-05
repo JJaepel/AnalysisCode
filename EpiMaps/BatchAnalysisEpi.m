@@ -10,7 +10,7 @@ analysisParams.server = 1;
 analysisParams.select = 1;
 analysisParams.downsample = 2;
 analysisParams.intrinsic = 0;
-analysisParams.pre = 0;
+analysisParams.pre = 1;
 analysisParams.changeThreshold = 0;
 analysisParams.clean = 0;
 

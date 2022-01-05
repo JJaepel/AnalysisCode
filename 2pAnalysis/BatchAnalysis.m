@@ -2,7 +2,7 @@
 analysisParams = struct;
 %which type of stimulus should it run
 analysisParams.stimType = 1; % 1 = driftingGrating, 2 = OriSf, 3 = OriTf, 4 = Patch, 5 = bino
-analysisParams.dataType = 1; %data type: 1 = cells, 2 = axons, 3 = spines
+analysisParams.dataType = 3; %data type: 1 = cells, 2 = axons, 3 = spines
 
 %what should it do?
 analysisParams.reloadData = 1; %should you reload from suite2p/Miji and do baselining?
@@ -18,7 +18,7 @@ analysisParams.zThresh = 4;
 analysisParams.fraction = 0.5;
 analysisParams.predictor = 0;
 analysisParams.shufflenum = 100;
-analysisParams.field = 'dff'; %rawRes for spines
+analysisParams.field = 'rawRes'; %rawRes for spines
 analysisParams.windowStart = 0;
 analysisParams.windowStop = 2;
 analysisParams.pre = 1;

@@ -32,7 +32,7 @@ analysis = makeMasks(data, analysis, analysisParams,1);
 
 %% 4.) Chop traces
 disp('Chopping Traces')
-[analysis, metadata] = ChopStimulusTraceEpi(analysis,metadata,data,analysisParams.field);
+[analysis, metadata] = ChopStimulusTraceEpi(analysis,metadata,data,analysisParams.field, analysisParams.bandpass);
 clear data
 
 %% 5.) Make timecourse

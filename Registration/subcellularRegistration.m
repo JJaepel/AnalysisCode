@@ -6,7 +6,7 @@ function subcellularRegistration(server, animal, name, level)
 
 %type
 regtype = 'downsample'; 
-% regtype = 'nonrigid';  
+%regtype = 'dft';  
  
 %downsample opts
 downsampleRates = [1/8, 1/4, 1/2, 1];
@@ -51,19 +51,25 @@ for slice = 1:numSlices
     %%%%%%find brightest image across a few stacks
     tic;
     template = [];
-    for fileNum = 1%:4%fix or do all? 
+    for fileNum = 1:4 %fix or do all? 
 
         imgStack = ScanImageTiffReader([cd,'/',files(fileNum).name]).data;
         imgStack = squeeze(imgStack);
-        dat = squeeze(squeeze(sum(sum(imgStack(:,:,31:end-31),1),2)));
+        dat = squeeze(squeeze(sum(sum(imgStack,1),2)));
         [a,id] = max(dat);
-        template(:,:,fileNum) = mean(imgStack(:,:,id+10:id+10),3);
+        template(:,:,fileNum) = mean(imgStack(:,:,id-15:id+25),3);
     end
     [a,id] = max(sum(sum(template,1),2));
     template = squeeze(template(:,:,id));
+    templateRot = flip(template);
+    templateRot = imrotate(templateRot,-90);
     if imagSpatSamp
         template = imresize(template,.5);
     end
+    
+    disp('Saving template');
+    filename = [outputDir 'template.tif'];
+    imwrite(uint16(templateRot),filename,'tif','writemode','overwrite');
     toc;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -208,7 +214,8 @@ for slice = 1:numSlices
                 clear M_final
             end
             toc;
-
+        elseif strcmp(regtype,'dft')
+            disp('Lets try something new')
         end
 
 

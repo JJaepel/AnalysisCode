@@ -37,7 +37,7 @@ end
 
 %% make projection for spine ROIing
 cd(saveDir)
-meanImg = uint16(mean(tifStack,3));
+meanImg = uint16(mean(tifStack(:,:,1:1000),3));
 imwrite(meanImg, saveFile, 'tiff', 'writemode', 'overwrite', 'compression', 'none')
 avg = mijread([saveDir filename]);
 MIJ.run('SpineROIs')

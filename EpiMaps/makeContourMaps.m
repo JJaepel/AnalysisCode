@@ -19,15 +19,16 @@ clipValue = prctile(indRespMaps(:),[clippingPercentile 100-clippingPercentile]);
 
 %z scoring data
 disp('Z scoring data')
-mu = nanmean(indRespMaps(:));
-sd = nanstd(indRespMaps(:));
+respData = indRespMaps(:,:,1:end-1);
+mu = nanmean(respData(:));
+sd = nanstd(respData(:));
 analysis.(analysisParams.field).zScore = (indRespMaps - mu)/sd;
 
 %making  contours on trial masks
 contourMaps = zeros(size(indRespMaps,1), size(indRespMaps,2), size(indRespMaps,3),size(indRespMaps,4));
 for stim = 1:size(indRespMaps,3)-1
    for trial=1:size(indRespMaps,4)
-        [c, ~] = contourf(analysis.(analysisParams.field).zScore(:,:,stim,trial));
+        [c, ~] = contour(analysis.(analysisParams.field).zScore(:,:,stim,trial));
         cdata = contourdata(c);
         levelData = find([cdata.level] ==0);
         analysis.(analysisParams.field).zeroContourXData{stim,trial} = {cdata(levelData).xdata};
@@ -85,11 +86,11 @@ for stim = 1:size(indRespMaps,3)-1
    for trial=1:size(indRespMaps,4)
        overlapMask = contourMaps(:,:,stim, trial) & contourMaps(:,:,stim, 1);
        analysis.overlap(stim, trial) = nnz(overlapMask)/nnz(contourMaps(:,:,stim, 1));
-       analysis.overlapA19(stim,trial) = nnz(overlapMask & analysis.maskA19)/(nnz(overlapMask & analysis.maskA19));
-       analysis.overlapV1(stim,trial) = nnz(overlapMask & analysis.maskV1)/(nnz(contourMaps(:,:,stim, 1)&analysis.maskV1));
+       analysis.overlapA19(stim,trial) = nnz(overlapMask & analysis.maskA19)/(nnz(contourMaps(:,:,stim, 1)& analysis.maskA19));
+       analysis.overlapV1(stim,trial) = nnz(overlapMask & analysis.maskV1)/(nnz(contourMaps(:,:,stim, 1)& analysis.maskV1));
        analysis.corr(stim, trial) = corr2(overlapMask,contourMaps(:,:,stim, 1));
-       analysis.corrA19(stim,trial)= corr2(overlapMask & analysis.maskA19,overlapMask & analysis.maskA19);
-       analysis.corrV1(stim,trial)= corr2(overlapMask & analysis.maskV1,overlapMask & analysis.maskV1); 
+       analysis.corrA19(stim,trial)= corr2(contourMaps(:,:,stim, trial) & analysis.maskA19,contourMaps(:,:,stim, 1) & analysis.maskA19);
+       analysis.corrV1(stim,trial)= corr2(contourMaps(:,:,stim, trial) & analysis.maskV1,contourMaps(:,:,stim, 1) & analysis.maskV1); 
    end
 end
 
@@ -105,8 +106,8 @@ for stim = 1:size(indRespMaps,3)-1
        OverlapRandom(drawing) = nnz(overlapMask)/nnz(contourMaps(:,:,stim, 1));
        OverlapA19Random(drawing)= nnz(overlapMask & analysis.maskA19)/(nnz(contourMaps(:,:,stim, 1)&analysis.maskA19));
        OverlapV1Random(drawing)= nnz(overlapMask & analysis.maskV1)/(nnz(contourMaps(:,:,stim, 1)&analysis.maskV1));
-       CorrA19Random(drawing)= corr2(overlapMask & analysis.maskA19,contourMaps(:,:,stim, 1)&analysis.maskA19);
-       CorrV1Random(drawing)= corr2(overlapMask & analysis.maskV1,contourMaps(:,:,stim, 1)&analysis.maskV1);
+       CorrA19Random(drawing)= corr2(contourMaps(:,:,randomStim, randomTrial) & analysis.maskA19,contourMaps(:,:,stim, 1)&analysis.maskA19);
+       CorrV1Random(drawing)= corr2(contourMaps(:,:,randomStim, randomTrial) & analysis.maskV1,contourMaps(:,:,stim, 1)&analysis.maskV1);
 
    end
    analysis.overlapRandom(stim,:) =  OverlapRandom;
