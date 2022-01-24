@@ -6,7 +6,7 @@ analysisParams.stimType = 1;
 
 %what should it do?
 analysisParams.reloadData = 0; %should you reload from suite2p/Miji and do baselining?
-analysisParams.reanalyse =0; %should you reanalyse the data or just plot?
+analysisParams.reanalyse =1; %should you reanalyse the data or just plot?
 analysisParams.select = 1; %load only selected data (1, marked in column run) or all data (0)?
 analysisParams.plotROIs = 0;   %should you plot traces for all resp ROIs?
 analysisParams.plotRespROIsOnly = 0; %should you also plot traces for all non-resp ROIs?
@@ -50,6 +50,7 @@ allExpInd = find(exp_info.run); %all experiments that need to be reanalyzed
 allV3Ind = find(cell2mat(exp_info.region) == 3);%all V3 exp
 allV1Ind = find(cell2mat(exp_info.region) == 1);%all V1 exp
 
+%Flag = find(cell2mat(exp_info.flag) == 1);
 
 NaiveAge =find(cell2mat(exp_info.EO) == 0); %EO+0
 EarlyAge = find(cell2mat(exp_info.EO) == 2 | cell2mat(exp_info.EO)== 3); %EO2-3
@@ -58,12 +59,19 @@ AdultAge = find(cell2mat(exp_info.EO) > 8); %EO>8
 EarlyInd = intersect(allV3Ind, EarlyAge);
 NaiveInd = intersect(allV3Ind, NaiveAge);
 AdultInd = intersect(allV3Ind, AdultAge);
+AdultInd = AdultInd(1:13);
 
 EarlyIndV1 = intersect(allV1Ind, EarlyAge);
 NaiveIndV1 = intersect(allV1Ind, NaiveAge);
 AdultIndV1 = intersect(allV1Ind, AdultAge);
+AdultIndV1 = AdultIndV1(1:3);
+
+allExp = [EarlyInd EarlyIndV1 NaiveInd NaiveIndV1 AdultIndV1 AdultIndV1];
 
 %reanalyze if necessary
+if ~analysisParams.select
+    allExpInd = allExp;
+end
 for i = allExpInd
     disp(['Currently analyzing: Ferret ' char(exp_info.animal{i}) ', Experiment ' char(exp_info.exp_id{i})])
     if exp_info.vol{i} == 1
@@ -78,7 +86,12 @@ for i = allExpInd
     GratingAnalysis(analysisParams);
 end
 
-%% 1.) Load all data into three master files and do data consolidation
+%% 1.) Load all data into three master files and do data consolidation for population information
+shortDistanceCorrNaive= [];
+longDistanceCorrNaive= [];
+corrTrialsMatchedNaive= [];
+corrTrialsOrthoNaive= [];
+
 for ilNaive = 1:length(NaiveInd)
     datapath = [adata_dir char(exp_info.animal{NaiveInd(ilNaive)}) filesep char(exp_info.exp_id{NaiveInd(ilNaive)}) filesep];
     try
@@ -89,8 +102,16 @@ for ilNaive = 1:length(NaiveInd)
     masterNaive{ilNaive}.metadata.ferret = char(exp_info.animal{NaiveInd(ilNaive)});
     masterNaive{ilNaive}.metadata.expID = exp_info.exp_id{NaiveInd(ilNaive)};
     respNaive{ilNaive} = find([masterNaive{ilNaive}.analysis.dff.roi.isResponseSignificant] == 1);
-    
+    shortDistanceCorrNaive = [shortDistanceCorrNaive  masterNaive{ilNaive}.analysis.dff.shortDistanceCorr'];
+    longDistanceCorrNaive = [longDistanceCorrNaive  masterNaive{ilNaive}.analysis.dff.longDistanceCorr'];
+    corrTrialsMatchedNaive = [corrTrialsMatchedNaive  masterNaive{ilNaive}.analysis.dff.corrTrialsMatched(:)'];
+    corrTrialsOrthoNaive = [corrTrialsOrthoNaive  masterNaive{ilNaive}.analysis.dff.corrTrialsOrtho(:)'];    
 end
+
+shortDistanceCorrEarly= [];
+longDistanceCorrEarly= [];
+corrTrialsMatchedEarly= [];
+corrTrialsOrthoEarly= [];
 for ilEarly = 1:length(EarlyInd)
     datapath = [adata_dir char(exp_info.animal{EarlyInd(ilEarly)}) filesep char(exp_info.exp_id{EarlyInd(ilEarly)}) filesep];
     try
@@ -101,7 +122,16 @@ for ilEarly = 1:length(EarlyInd)
     masterEarly{ilEarly}.metadata.ferret = char(exp_info.animal{EarlyInd(ilEarly)});
     masterEarly{ilEarly}.metadata.expID = exp_info.exp_id{EarlyInd(ilEarly)};
     respEarly{ilEarly} = find([masterEarly{ilEarly}.analysis.dff.roi.isResponseSignificant] == 1);
+    shortDistanceCorrEarly = [shortDistanceCorrEarly  masterEarly{ilEarly}.analysis.dff.shortDistanceCorr'];
+    longDistanceCorrEarly = [longDistanceCorrEarly  masterEarly{ilEarly}.analysis.dff.longDistanceCorr'];
+    corrTrialsMatchedEarly = [corrTrialsMatchedEarly  masterEarly{ilEarly}.analysis.dff.corrTrialsMatched(:)'];
+    corrTrialsOrthoEarly = [corrTrialsOrthoEarly masterEarly{ilEarly}.analysis.dff.corrTrialsOrtho(:)'];  
 end
+
+shortDistanceCorrAdult= [];
+longDistanceCorrAdult= [];
+corrTrialsMatchedAdult= [];
+corrTrialsOrthoAdult= [];
 for ilAdult= 1:length(AdultInd)
     datapath = [adata_dir char(exp_info.animal{AdultInd(ilAdult)}) filesep char(exp_info.exp_id{AdultInd(ilAdult)}) filesep];
     try
@@ -112,8 +142,16 @@ for ilAdult= 1:length(AdultInd)
     masterAdult{ilAdult}.metadata.ferret = char(exp_info.animal{AdultInd(ilAdult)});
     masterAdult{ilAdult}.metadata.expID = exp_info.exp_id{AdultInd(ilAdult)};
     respAdult{ilAdult} = find([masterAdult{ilAdult}.analysis.dff.roi.isResponseSignificant] == 1);
+    shortDistanceCorrAdult = [shortDistanceCorrAdult masterAdult{ilAdult}.analysis.dff.shortDistanceCorr'];
+    longDistanceCorrAdult= [longDistanceCorrAdult masterAdult{ilAdult}.analysis.dff.longDistanceCorr'];
+    corrTrialsMatchedAdult = [corrTrialsMatchedAdult  masterAdult{ilAdult}.analysis.dff.corrTrialsMatched(:)'];
+    corrTrialsOrthoAdult = [corrTrialsOrthoAdult masterAdult{ilAdult}.analysis.dff.corrTrialsOrtho(:)'];  
 end
 
+shortDistanceCorrNaiveV1= [];
+longDistanceCorrNaiveV1= [];
+corrTrialsMatchedNaiveV1= [];
+corrTrialsOrthoNaiveV1= [];
 for ilNaiveV1 = 1:length(NaiveIndV1)
     datapath = [adata_dir char(exp_info.animal{NaiveIndV1(ilNaiveV1)}) filesep char(exp_info.exp_id{NaiveIndV1(ilNaiveV1)}) filesep];
     try
@@ -124,8 +162,16 @@ for ilNaiveV1 = 1:length(NaiveIndV1)
     masterNaiveV1{ilNaiveV1}.metadata.ferret = char(exp_info.animal{NaiveIndV1(ilNaiveV1)});
     masterNaiveV1{ilNaiveV1}.metadata.expID = exp_info.exp_id{NaiveIndV1(ilNaiveV1)};
     respNaiveV1{ilNaiveV1} = find([masterNaiveV1{ilNaiveV1}.analysis.dff.roi.isResponseSignificant] == 1);
-    
+    shortDistanceCorrNaiveV1 = [shortDistanceCorrNaiveV1  masterNaiveV1{ilNaiveV1}.analysis.dff.shortDistanceCorr'];
+    longDistanceCorrNaiveV1 = [longDistanceCorrNaiveV1  masterNaiveV1{ilNaiveV1}.analysis.dff.longDistanceCorr'];
+    corrTrialsMatchedNaiveV1 = [corrTrialsMatchedNaiveV1  masterNaiveV1{ilNaiveV1}.analysis.dff.corrTrialsMatched(:)'];
+    corrTrialsOrthoNaiveV1 = [corrTrialsOrthoNaiveV1  masterNaiveV1{ilNaiveV1}.analysis.dff.corrTrialsOrtho(:)'];   
 end
+
+shortDistanceCorrEarlyV1= [];
+longDistanceCorrEarlyV1= [];
+corrTrialsMatchedEarlyV1= [];
+corrTrialsOrthoEarlyV1= [];
 for ilEarlyV1 = 1:length(EarlyIndV1)
     datapath = [adata_dir char(exp_info.animal{EarlyIndV1(ilEarlyV1)}) filesep char(exp_info.exp_id{EarlyIndV1(ilEarlyV1)}) filesep];
     try
@@ -136,7 +182,16 @@ for ilEarlyV1 = 1:length(EarlyIndV1)
     masterEarlyV1{ilEarlyV1}.metadata.ferret = char(exp_info.animal{EarlyIndV1(ilEarlyV1)});
     masterEarlyV1{ilEarlyV1}.metadata.expID = exp_info.exp_id{EarlyIndV1(ilEarlyV1)};
     respEarlyV1{ilEarlyV1} = find([masterEarlyV1{ilEarlyV1}.analysis.dff.roi.isResponseSignificant] == 1);
+    shortDistanceCorrEarlyV1 = [shortDistanceCorrEarlyV1  masterEarlyV1{ilEarlyV1}.analysis.dff.shortDistanceCorr'];
+    longDistanceCorrEarlyV1 = [longDistanceCorrEarlyV1  masterEarlyV1{ilEarlyV1}.analysis.dff.longDistanceCorr'];
+    corrTrialsMatchedEarlyV1 = [corrTrialsMatchedEarlyV1  masterEarlyV1{ilEarlyV1}.analysis.dff.corrTrialsMatched(:)'];
+    corrTrialsOrthoEarlyV1 = [corrTrialsOrthoEarlyV1 masterEarlyV1{ilEarlyV1}.analysis.dff.corrTrialsOrtho(:)']; 
 end
+
+shortDistanceCorrAdultV1= [];
+longDistanceCorrAdultV1= [];
+corrTrialsMatchedAdultV1= [];
+corrTrialsOrthoAdultV1= [];
 for ilAdultV1= 1:length(AdultIndV1)
     datapath = [adata_dir char(exp_info.animal{AdultIndV1(ilAdultV1)}) filesep char(exp_info.exp_id{AdultIndV1(ilAdultV1)}) filesep];
     try
@@ -147,15 +202,21 @@ for ilAdultV1= 1:length(AdultIndV1)
     masterAdultV1{ilAdultV1}.metadata.ferret = char(exp_info.animal{AdultIndV1(ilAdultV1)});
     masterAdultV1{ilAdultV1}.metadata.expID = exp_info.exp_id{AdultIndV1(ilAdultV1)};
     respAdultV1{ilAdultV1} = find([masterAdultV1{ilAdultV1}.analysis.dff.roi.isResponseSignificant] == 1);
+    shortDistanceCorrAdultV1 = [shortDistanceCorrAdultV1 masterAdultV1{ilAdultV1}.analysis.dff.shortDistanceCorr'];
+    longDistanceCorrAdultV1= [longDistanceCorrAdultV1 masterAdultV1{ilAdultV1}.analysis.dff.longDistanceCorr'];
+    corrTrialsMatchedAdultV1 = [corrTrialsMatchedAdultV1  masterAdultV1{ilAdultV1}.analysis.dff.corrTrialsMatched(:)'];
+    corrTrialsOrthoAdultV1 = [corrTrialsOrthoAdultV1 masterAdultV1{ilAdultV1}.analysis.dff.corrTrialsOrtho(:)'];  
 end
-%%
-%data consolidation
+%% Data consolidation for single cells
 OSIFitNaive = [];
 OriCircVarNaive = [];
 cohensDNaive = [];
 DSINaive = [];
 DirCircVarNaive = [];
 isRespNaive = [];
+BandthWidthNaive = [];
+VINaive = [];
+FanoFactorNaive = [];
 for ferret =1:length(NaiveInd)
     OSIFitNaive = [OSIFitNaive masterNaive{ferret}.analysis.dff.roi(respNaive{ferret}).OSIFit];
     OriCircVarNaive = [OriCircVarNaive masterNaive{ferret}.analysis.dff.roi(respNaive{ferret}).OriCircVar];
@@ -163,6 +224,9 @@ for ferret =1:length(NaiveInd)
     DSINaive = [DSINaive masterNaive{ferret}.analysis.dff.roi(respNaive{ferret}).DSI];
     DirCircVarNaive = [DirCircVarNaive masterNaive{ferret}.analysis.dff.roi(respNaive{ferret}).DirCircVar];
     isRespNaive = [isRespNaive masterNaive{ferret}.analysis.dff.roi.isResponseSignificant];
+    BandthWidthNaive = [BandthWidthNaive masterNaive{ferret}.analysis.dff.roi(respNaive{ferret}).Bandwidth];
+    VINaive = [VINaive masterNaive{ferret}.analysis.dff.roi(respNaive{ferret}).VI];
+    FanoFactorNaive = [FanoFactorNaive masterNaive{ferret}.analysis.dff.roi(respNaive{ferret}).fanoFactor]; 
 end
 
 OSIFitEarly = [];
@@ -171,6 +235,9 @@ cohensDEarly = [];
 DSIEarly= [];
 DirCircVarEarly = [];
 isRespEarly = [];
+BandthWidthEarly = [];
+VIEarly = [];
+FanoFactorEarly = [];
 for ferret =1:length(EarlyInd)
     OSIFitEarly = [OSIFitEarly masterEarly{ferret}.analysis.dff.roi(respEarly{ferret}).OSIFit];
     OriCircVarEarly = [OriCircVarEarly masterEarly{ferret}.analysis.dff.roi(respEarly{ferret}).OriCircVar];
@@ -178,6 +245,9 @@ for ferret =1:length(EarlyInd)
     DSIEarly = [DSIEarly masterEarly{ferret}.analysis.dff.roi(respEarly{ferret}).DSI];
     DirCircVarEarly = [DirCircVarEarly masterEarly{ferret}.analysis.dff.roi(respEarly{ferret}).DirCircVar];
     isRespEarly = [isRespEarly masterEarly{ferret}.analysis.dff.roi.isResponseSignificant];
+    BandthWidthEarly = [BandthWidthEarly masterEarly{ferret}.analysis.dff.roi(respEarly{ferret}).Bandwidth];
+    VIEarly = [VIEarly masterEarly{ferret}.analysis.dff.roi(respEarly{ferret}).VI];
+    FanoFactorEarly = [FanoFactorEarly masterEarly{ferret}.analysis.dff.roi(respEarly{ferret}).fanoFactor]; 
 end
 
 OSIFitAdult = [];
@@ -186,6 +256,9 @@ cohensDAdult  = [];
 DSIAdult = [];
 DirCircVarAdult  = [];
 isRespAdult  = [];
+BandthWidthAdult= [];
+VIAdult = [];
+FanoFactorAdult = [];
 for ferret =1:length(AdultInd)
     OSIFitAdult  = [OSIFitAdult  masterAdult{ferret}.analysis.dff.roi(respAdult{ferret}).OSIFit];
     OriCircVarAdult  = [OriCircVarAdult  masterAdult{ferret}.analysis.dff.roi(respAdult{ferret}).OriCircVar];
@@ -193,6 +266,9 @@ for ferret =1:length(AdultInd)
     DSIAdult  = [DSIAdult masterAdult{ferret}.analysis.dff.roi(respAdult{ferret}).DSI];
     DirCircVarAdult  = [DirCircVarAdult masterAdult{ferret}.analysis.dff.roi(respAdult{ferret}).DirCircVar];
     isRespAdult = [isRespAdult masterAdult{ferret}.analysis.dff.roi.isResponseSignificant];
+    BandthWidthAdult = [BandthWidthAdult masterAdult{ferret}.analysis.dff.roi(respAdult{ferret}).Bandwidth];
+    VIAdult = [VIAdult masterAdult{ferret}.analysis.dff.roi(respAdult{ferret}).VI];
+    FanoFactorAdult = [FanoFactorAdult masterAdult{ferret}.analysis.dff.roi(respAdult{ferret}).fanoFactor]; 
 end
 
 OSIFitNaiveV1 = [];
@@ -201,6 +277,9 @@ cohensDNaiveV1 = [];
 DSINaiveV1 = [];
 DirCircVarNaiveV1 = [];
 isRespNaiveV1 = [];
+BandthWidthNaiveV1 = [];
+VINaiveV1 = [];
+FanoFactorNaiveV1 = [];
 for ferret =1:length(NaiveIndV1)
     OSIFitNaiveV1 = [OSIFitNaiveV1 masterNaiveV1{ferret}.analysis.dff.roi(respNaiveV1{ferret}).OSIFit];
     OriCircVarNaiveV1 = [OriCircVarNaiveV1 masterNaiveV1{ferret}.analysis.dff.roi(respNaiveV1{ferret}).OriCircVar];
@@ -208,6 +287,9 @@ for ferret =1:length(NaiveIndV1)
     DSINaiveV1 = [DSINaiveV1 masterNaiveV1{ferret}.analysis.dff.roi(respNaiveV1{ferret}).DSI];
     DirCircVarNaiveV1 = [DirCircVarNaiveV1 masterNaiveV1{ferret}.analysis.dff.roi(respNaiveV1{ferret}).DirCircVar];
     isRespNaiveV1 = [isRespNaiveV1 masterNaiveV1{ferret}.analysis.dff.roi.isResponseSignificant];
+    BandthWidthNaiveV1 = [BandthWidthNaiveV1 masterNaiveV1{ferret}.analysis.dff.roi(respNaiveV1{ferret}).Bandwidth];
+    VINaiveV1 = [VINaiveV1 masterNaiveV1{ferret}.analysis.dff.roi(respNaiveV1{ferret}).VI];
+    FanoFactorNaiveV1 = [FanoFactorNaiveV1 masterNaiveV1{ferret}.analysis.dff.roi(respNaiveV1{ferret}).fanoFactor]; 
 end
 
 OSIFitEarlyV1 = [];
@@ -216,6 +298,9 @@ cohensDEarlyV1 = [];
 DSIEarlyV1= [];
 DirCircVarEarlyV1 = [];
 isRespEarlyV1 = [];
+BandthWidthEarlyV1 = [];
+VIEarlyV1 = [];
+FanoFactorEarlyV1 = [];
 for ferret =1:length(EarlyIndV1)
     OSIFitEarlyV1 = [OSIFitEarlyV1 masterEarlyV1{ferret}.analysis.dff.roi(respEarlyV1{ferret}).OSIFit];
     OriCircVarEarlyV1 = [OriCircVarEarlyV1 masterEarlyV1{ferret}.analysis.dff.roi(respEarlyV1{ferret}).OriCircVar];
@@ -223,6 +308,9 @@ for ferret =1:length(EarlyIndV1)
     DSIEarlyV1 = [DSIEarlyV1 masterEarlyV1{ferret}.analysis.dff.roi(respEarlyV1{ferret}).DSI];
     DirCircVarEarlyV1 = [DirCircVarEarlyV1 masterEarlyV1{ferret}.analysis.dff.roi(respEarlyV1{ferret}).DirCircVar];
     isRespEarlyV1 = [isRespEarlyV1 masterEarlyV1{ferret}.analysis.dff.roi.isResponseSignificant];
+    BandthWidthEarlyV1 = [BandthWidthEarlyV1 masterEarlyV1{ferret}.analysis.dff.roi(respEarlyV1{ferret}).Bandwidth];
+    VIEarlyV1 = [VIEarlyV1 masterEarlyV1{ferret}.analysis.dff.roi(respEarlyV1{ferret}).VI];
+    FanoFactorEarlyV1 = [FanoFactorEarlyV1 masterEarlyV1{ferret}.analysis.dff.roi(respEarlyV1{ferret}).fanoFactor];
 end
 
 OSIFitAdultV1 = [];
@@ -231,6 +319,9 @@ cohensDAdultV1  = [];
 DSIAdultV1 = [];
 DirCircVarAdultV1  = [];
 isRespAdultV1  = [];
+BandthWidthAdultV1= [];
+VIAdultV1 = [];
+FanoFactorAdultV1 = [];
 for ferret =1:length(AdultIndV1)
     OSIFitAdultV1  = [OSIFitAdultV1  masterAdultV1{ferret}.analysis.dff.roi(respAdultV1{ferret}).OSIFit];
     OriCircVarAdultV1  = [OriCircVarAdultV1  masterAdultV1{ferret}.analysis.dff.roi(respAdultV1{ferret}).OriCircVar];
@@ -238,10 +329,195 @@ for ferret =1:length(AdultIndV1)
     DSIAdultV1  = [DSIAdultV1 masterAdultV1{ferret}.analysis.dff.roi(respAdultV1{ferret}).DSI];
     DirCircVarAdultV1  = [DirCircVarAdultV1 masterAdultV1{ferret}.analysis.dff.roi(respAdultV1{ferret}).DirCircVar];
     isRespAdultV1 = [isRespAdultV1 masterAdultV1{ferret}.analysis.dff.roi.isResponseSignificant];
+    BandthWidthAdultV1 = [BandthWidthAdultV1 masterAdultV1{ferret}.analysis.dff.roi(respAdultV1{ferret}).Bandwidth];
+    VIAdultV1 = [VIAdultV1 masterAdultV1{ferret}.analysis.dff.roi(respAdultV1{ferret}).VI];
+    FanoFactorAdultV1 = [FanoFactorAdultV1 masterAdultV1{ferret}.analysis.dff.roi(respAdultV1{ferret}).fanoFactor]; 
 end
 
-%% 2.) Calculate population indices
-%% 3.) Plot results
+%% 2.) Plot resuls populations
+% a) short vs. long range correlation of cells
+figure
+subplot(1,6,1)
+distributionPlot(shortDistanceCorrNaive','color', cocNaive(4,:)); hold on
+boxplot(shortDistanceCorrNaive,'Label', {'Naive'})
+xlabel('< 100 um')
+ylim([-1 1])
+set(gca,'Box','off');
+
+subplot(1,6,2)
+distributionPlot(longDistanceCorrNaive','color', cocNaive(3,:)); hold on
+boxplot(longDistanceCorrNaive, 'Label', {'Naive'})
+xlabel('300-400 um')
+ylim([-1 1])
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,3)
+distributionPlot(shortDistanceCorrEarly','color', cocEarly(4,:)); hold on
+boxplot(shortDistanceCorrEarly,'Label', {'Early'})
+xlabel('< 100 um')
+ylim([-1 1])
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,4)
+distributionPlot(longDistanceCorrEarly','color', cocEarly(3,:)); hold on
+boxplot(longDistanceCorrEarly, 'Label', {'Early'})
+xlabel('300-400 um')
+ylim([-1 1])
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,5)
+distributionPlot(shortDistanceCorrAdult','color', cocAdult(4,:)); hold on
+boxplot(shortDistanceCorrAdult,'Label', {'Adult'})
+xlabel('< 100 um')
+ylim([-1 1])
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,6)
+distributionPlot(longDistanceCorrAdult','color', cocAdult(3,:)); hold on
+boxplot(longDistanceCorrAdult, 'Label', {'Adult'})
+xlabel('300-400 um')
+ylim([-1 1])
+set(gca,'box','off','ycolor','w')
+
+set(gcf, 'color', 'w');
+saveas(gcf, fullfile(save_dir, 'corrCellsDistance.png'))
+
+%for V1
+figure
+subplot(1,6,1)
+distributionPlot(shortDistanceCorrNaiveV1','color', cocNaiveV1(4,:)); hold on
+boxplot(shortDistanceCorrNaiveV1,'Label', {'Naive'})
+xlabel('< 100 um')
+ylim([-1 1])
+set(gca,'Box','off');
+
+subplot(1,6,2)
+distributionPlot(longDistanceCorrNaiveV1','color', cocNaiveV1(3,:)); hold on
+boxplot(longDistanceCorrNaiveV1, 'Label', {'Naive'})
+xlabel('300-400 um')
+ylim([-1 1])
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,3)
+distributionPlot(shortDistanceCorrEarlyV1','color', cocEarlyV1(4,:)); hold on
+boxplot(shortDistanceCorrEarlyV1,'Label', {'Early'})
+xlabel('< 100 um')
+ylim([-1 1])
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,4)
+distributionPlot(longDistanceCorrEarlyV1','color', cocEarlyV1(3,:)); hold on
+boxplot(longDistanceCorrEarlyV1, 'Label', {'Early'})
+xlabel('300-400 um')
+ylim([-1 1])
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,5)
+distributionPlot(shortDistanceCorrAdultV1','color', cocAdultV1(4,:)); hold on
+boxplot(shortDistanceCorrAdultV1,'Label', {'Adult'})
+xlabel('< 100 um')
+ylim([-1 1])
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,6)
+distributionPlot(longDistanceCorrAdultV1','color', cocAdultV1(3,:)); hold on
+boxplot(longDistanceCorrAdultV1, 'Label', {'Adult'})
+xlabel('300-400 um')
+ylim([-1 1])
+set(gca,'box','off','ycolor','w')
+
+set(gcf, 'color', 'w');
+saveas(gcf, fullfile(save_dir, 'corrCellsDistanceV1.png'))
+
+% b( Template matching ortho vs. matched
+figure
+subplot(1,6,1)
+distributionPlot(corrTrialsMatchedNaive','color', cocNaive(4,:)); hold on
+boxplot(corrTrialsMatchedNaive,'Label', {'Naive'})
+xlabel('Matched')
+ylim([-1 1])
+set(gca,'Box','off');
+
+subplot(1,6,2)
+distributionPlot(longDistanceCorrNaive','color', cocNaive(3,:)); hold on
+boxplot(longDistanceCorrNaive, 'Label', {'Naive'})
+xlabel('Ortho')
+ylim([-1 1])
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,3)
+distributionPlot(corrTrialsMatchedEarly','color', cocEarly(4,:)); hold on
+boxplot(corrTrialsMatchedEarly,'Label', {'Early'})
+xlabel('Matched')
+ylim([-1 1])
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,4)
+distributionPlot(longDistanceCorrEarly','color', cocEarly(3,:)); hold on
+boxplot(longDistanceCorrEarly, 'Label', {'Early'})
+xlabel('Ortho')
+ylim([-1 1])
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,5)
+distributionPlot(corrTrialsMatchedAdult','color', cocAdult(4,:)); hold on
+boxplot(corrTrialsMatchedAdult,'Label', {'Adult'})
+xlabel('Matched')
+ylim([-1 1])
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,6)
+distributionPlot(longDistanceCorrAdult','color', cocAdult(3,:)); hold on
+boxplot(longDistanceCorrAdult, 'Label', {'Adult'})
+xlabel('Ortho')
+ylim([-1 1])
+set(gca,'box','off','ycolor','w')
+
+set(gcf, 'color', 'w');
+saveas(gcf, fullfile(save_dir, 'TrialPatternCorr.png'))
+
+%for V1
+figure
+subplot(1,6,1)
+distributionPlot(corrTrialsMatchedNaiveV1','color', cocNaiveV1(4,:)); hold on
+boxplot(corrTrialsMatchedNaiveV1,'Label', {'Naive'})
+xlabel('Matched')
+set(gca,'Box','off');
+
+subplot(1,6,2)
+distributionPlot(corrTrialsOrthoNaiveV1','color', cocNaiveV1(3,:)); hold on
+boxplot(corrTrialsOrthoNaiveV1, 'Label', {'Naive'})
+xlabel('Ortho')
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,3)
+distributionPlot(corrTrialsMatchedEarlyV1','color', cocEarlyV1(4,:)); hold on
+boxplot(corrTrialsMatchedEarlyV1,'Label', {'Early'})
+xlabel('Matched')
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,4)
+distributionPlot(corrTrialsOrthoEarlyV1','color', cocEarlyV1(3,:)); hold on
+boxplot(corrTrialsOrthoEarlyV1, 'Label', {'Early'})
+xlabel('Ortho')
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,5)
+distributionPlot(corrTrialsMatchedAdultV1','color', cocAdultV1(4,:)); hold on
+boxplot(corrTrialsMatchedAdultV1,'Label', {'Adult'})
+xlabel('Matched')
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,6)
+distributionPlot(corrTrialsOrthoAdultV1','color', cocAdultV1(3,:)); hold on
+boxplot(corrTrialsOrthoAdultV1, 'Label', {'Adult'})
+xlabel('Ortho')
+set(gca,'box','off','ycolor','w')
+
+set(gcf, 'color', 'w');
+saveas(gcf, fullfile(save_dir, 'TrialPatternCorrV1.png'))
+
+%% 3.) Plot results single cells
 % a)responsiveness and selectivity portions
 figure
 subplot(3, 3, 1)
@@ -727,3 +1003,115 @@ set(gcf, 'color', 'w');
 set(gca, 'box', 'off')
 
 saveas(gcf, fullfile(save_dir, 'cohensDV1.png'))
+
+%% e) VI
+figure
+hdl(1) = cdfplot(VINaive); hold all
+hdl(2) = cdfplot(VIEarly); hold all
+hdl(3) = cdfplot(VIAdult); hold all
+set(hdl(1), 'Color', cocNaive(4,:), 'LineWidth', 4);
+set(hdl(2), 'Color', cocEarly(4,:), 'LineWidth', 4);
+set(hdl(3), 'Color', cocAdult(4,:), 'LineWidth', 4);
+grid off;
+legend('Naive', 'Early', 'Adult', 'Location', 'SouthEast'); legend('boxoff')
+ylabel('Cumulative probability', 'FontSize', 12)
+xlabel('Variability index', 'FontSize', 12);
+
+h = findobj(gca, 'Type', 'patch');
+set(h, 'facecolor', 'w');
+set(gcf, 'color', 'w');
+set(gca, 'box', 'off')
+
+saveas(gcf, fullfile(save_dir, 'VI.png'))
+
+figure
+hdl(1) = cdfplot(VINaiveV1); hold all
+hdl(2) = cdfplot(VIEarlyV1); hold all
+hdl(3) = cdfplot(VIAdultV1); hold all
+set(hdl(1), 'Color', cocNaiveV1(4,:), 'LineWidth', 4);
+set(hdl(2), 'Color', cocEarlyV1(4,:), 'LineWidth', 4);
+set(hdl(3), 'Color', cocAdultV1(4,:), 'LineWidth', 4);
+grid off;
+legend('Naive V1', 'Early V1', 'Adult V1', 'Location', 'SouthEast'); legend('boxoff')
+ylabel('Cumulative probability', 'FontSize', 12)
+xlabel('VI', 'FontSize', 12);
+
+h = findobj(gca, 'Type', 'patch');
+set(h, 'facecolor', 'w');
+set(gcf, 'color', 'w');
+set(gca, 'box', 'off')
+
+saveas(gcf, fullfile(save_dir, 'VIV1.png'))
+
+%% f) Fanofactor and Bandthwidth
+figure
+subplot(1,6,1)
+distributionPlot(FanoFactorNaive','color', cocNaive(4,:)); hold on
+boxplot(FanoFactorNaive,'Label', {'Naive'})
+xlabel('(FanoFactor')
+set(gca,'Box','off');
+
+subplot(1,6,2)
+distributionPlot(FanoFactorEarly','color', cocEarly(4,:)); hold on
+boxplot(FanoFactorEarly, 'Label', {'Early'})
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,3)
+distributionPlot(FanoFactorAdult','color', cocAdult(4,:)); hold on
+boxplot(FanoFactorAdult, 'Label', {'Adult'})
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,4)
+distributionPlot(BandthWidthNaive','color', cocNaive(4,:)); hold on
+boxplot(BandthWidthNaive, 'Label', {'Naive'})
+xlabel('BandthWidth')
+set(gca,'Box','off');
+
+subplot(1, 6, 5)
+distributionPlot(BandthWidthEarly','color', cocEarly(4,:)); hold on
+boxplot(BandthWidthEarly, 'Label', {'Early'})
+set(gca,'box','off','ycolor','w')
+
+subplot(1, 6, 6)
+distributionPlot(BandthWidthAdult','color', cocAdult(4,:)); hold on
+boxplot(BandthWidthAdult, 'Label', {'Adult'})
+set(gca,'box','off','ycolor','w')
+
+set(gcf, 'color', 'w');
+saveas(gcf, fullfile(save_dir, 'FanoFactorBandthWidth.png'))
+
+figure
+subplot(1,6,1)
+distributionPlot(FanoFactorNaiveV1','color', cocNaiveV1(4,:)); hold on
+boxplot(FanoFactorNaiveV1,'Label', {'Naive V1'})
+xlabel('FanoFactor')
+set(gca,'Box','off');
+
+subplot(1,6,2)
+distributionPlot(FanoFactorEarlyV1','color', cocEarlyV1(4,:)); hold on
+boxplot(FanoFactorEarlyV1, 'Label', {'Early V1'})
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,3)
+distributionPlot(FanoFactorAdultV1','color', cocAdultV1(4,:)); hold on
+boxplot(FanoFactorAdultV1, 'Label', {'Adult V1'})
+set(gca,'box','off','ycolor','w')
+
+subplot(1,6,4)
+distributionPlot(BandthWidthNaiveV1','color', cocNaiveV1(4,:)); hold on
+boxplot(BandthWidthNaiveV1, 'Label', {'Naive V1'})
+xlabel('DSI')
+set(gca,'Box','off');
+
+subplot(1, 6, 5)
+distributionPlot(BandthWidthEarlyV1','color', cocEarlyV1(4,:)); hold on
+boxplot(DSIEarlyV1, 'Label', {'Early V1'})
+set(gca,'box','off','ycolor','w')
+
+subplot(1, 6, 6)
+distributionPlot(BandthWidthAdultV1','color', cocAdultV1(4,:)); hold on
+boxplot(BandthWidthAdultV1, 'Label', {'Adult V1'})
+set(gca,'box','off','ycolor','w')
+
+set(gcf, 'color', 'w');
+saveas(gcf, fullfile(save_dir, 'FanoFactorBandthWidthV1.png'))

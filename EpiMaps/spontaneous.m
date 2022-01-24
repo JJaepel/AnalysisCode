@@ -87,6 +87,7 @@ maskV1(maskV1>-200000)=0;
 expParam.maskV1 = logical(maskV1);
 
 data.filt=LowHighNormalize(double(data.rawF), expParam.mask, 1,10);
+data.high = HighNormalize(doube(data.rawF), expParam.mask, 1,10);
 %% get ative Frames, compute correlations of the imaging stack and show it
 % Computes correlations of the imaging stack (spontaneous, response, signal, or noise). 
             % The image dimensions can be "N" dimensions, but must be organized such that they are:

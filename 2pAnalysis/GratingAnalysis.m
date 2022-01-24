@@ -168,7 +168,7 @@ if analysisParams.reanalyse
         else
             dirResponse = analysis.(analysisParams.field).roi(i).stimResponseTrace(1:end-1, :, :);
         end
-        
+                
         %calculate the median response curve for each direction and orientation
         dirResponse = mean(dirResponse(:,:,stimWindow),3); %average over the stimWindow
         Responses = dirResponse; %this contains the variability over the trials and is needed for Cohen's D
@@ -187,13 +187,23 @@ if analysisParams.reanalyse
         %CircVar, DirCircVar
         [analysis.(analysisParams.field).roi(i).OriCircVar] = 1-OriCircularVariance(dirResponse);
         [analysis.(analysisParams.field).roi(i).DirCircVar] = 1-DirCircularVariance(dirResponse);
-
+        
+        %calculate bandwidth
+        [analysis.(analysisParams.field).roi(i).Bandwidth] = computeBandWidth(dirResponse);
+        
         %Cohen's D
         [analysis.(analysisParams.field).roi(i).cohensD] = computeCohensD(metadata.StimParams.numOrientations ,Responses);
-
+        
+        %Calculate Fano factor for preferred stimulus
+        [analysis.(analysisParams.field).roi(i).fanoFactor] = computeFanoFactor(Responses);
+        
+        %calculate Variability index
+        [analysis.(analysisParams.field).roi(i).VI] = computeVI(Responses);
+        
         %Find preferred orientation based on gaussian fit
         [analysis.(analysisParams.field).roi(i).preferredOrientation,analysis.(analysisParams.field).roi(i).coeffOr,analysis.(analysisParams.field).roi(i).rsqOr] = ComputePreferredOrientations(oriResponse, thetaOri);
         analysis.(analysisParams.field).roi(i).OSIFit = computeOSIFit(analysis.(analysisParams.field).roi(i).coeffOr); %compute OSI from fit
+        
 
         %Find preferred direction based on double gaussian fit
         try
@@ -365,6 +375,7 @@ if analysisParams.reanalyse
     elseif setup == 2
         umperpixel = 2.73/zoom;
     end
+    metadata.umperpixel = umperpixel;
     
     ori_sel = find([analysis.(analysisParams.field).roi.OSIFit] > 0.2 & [analysis.(analysisParams.field).roi.isResponseSignificant] == 1);
     [distOri, deltaOri, distROIs] = calcDistDeltaOri(data, analysis, ori_sel,umperpixel, analysisParams.level, analysisParams.field);
@@ -376,6 +387,14 @@ if analysisParams.reanalyse
     
     % calculate HeterogeneityIndex
     analysis.(analysisParams.field).ori_cells.HomeogeneityIndex = calculateHI(analysis, ori_sel, analysisParams.level, data, analysisParams.field);
+    
+    %if trialPattern
+        disp('Calculating trial pattern')
+        [analysis.(analysisParams.field).corrCoeff, analysis.(analysisParams.field).corrTrialsMatched, analysis.(analysisParams.field).corrTrialsOrtho] = trialPatternCorrelation(analysis, metadata, analysisParams.field, saveDirectory);
+    %end
+    
+    disp('calculating distance vs. correlation')
+    [analysis.(analysisParams.field).shortDistanceCorr, analysis.(analysisParams.field).longDistanceCorr] = cellCorrelationDistance(analysis, data, metadata, analysisParams.field, saveDirectory);
     
     % try to predict stimulus from the data
     if analysisParams.predictor
@@ -744,64 +763,117 @@ saveas(gcf, fullfile(saveDirectory, 'resp_cells.png'))
 %allOSIFit = [analysis.(analysisParams.field).roi.OSIFit];
 
 figure
-subplot(1,6,1)
+subplot(1,4,1)
 distributionPlot([analysis.(analysisParams.field).roi.OSI]','color', coc_prop(2,:)); hold all
 boxplot([analysis.(analysisParams.field).roi.OSI])
 title('OSI')
-subplot(1,6,2)
+ylim([0 1])
+subplot(1,4,2)
 distributionPlot([analysis.(analysisParams.field).roi.OSIFit]','color', coc_prop(2,:)); hold all
 boxplot([analysis.(analysisParams.field).roi.OSI])
 title('OSI after fitting')
-subplot(1,6,3)
+ylim([0 1])
+subplot(1,4,3)
 distributionPlot([analysis.(analysisParams.field).roi.OriCircVar]','color', coc_prop(2,:)); hold all
 boxplot([analysis.(analysisParams.field).roi.OriCircVar])
 title('CircVar')
-subplot(1,6,4)
-distributionPlot([analysis.(analysisParams.field).roi.cohensD]','color', coc_prop(2,:)); hold on
-boxplot([analysis.(analysisParams.field).roi.cohensD])
-title('cohensD')
-subplot(1,6,5)
+ylim([0 1])
+subplot(1,4,4)
+distributionPlot([analysis.(analysisParams.field).roi.Bandwidth]','color', coc_prop(2,:)); hold all
+boxplot([analysis.(analysisParams.field).roi.Bandwidth])
+title('Bandwidth')
+set(gcf, 'color', 'w');
+saveas(gcf, fullfile(saveDirectory, 'OSI_distribution_all.png'))
+
+figure
+subplot(1,2,1)
 distributionPlot([analysis.(analysisParams.field).roi.DSI]','color', coc_prop(4,:)); hold on
 boxplot([analysis.(analysisParams.field).roi.cohensD])
 title('DSI')
-subplot(1,6,6)
+subplot(1,2,2)
 distributionPlot([analysis.(analysisParams.field).roi.DSI]','color', coc_prop(4,:)); hold on
 boxplot([analysis.(analysisParams.field).roi.DirCircVar])
 title('DirCircVar')
 set(gcf, 'color', 'w');
-saveas(gcf, fullfile(saveDirectory, 'OSI_DSI_distribution_all.png'))
+saveas(gcf, fullfile(saveDirectory, 'DSI_distribution_all.png'))
+
+
+
+figure
+subplot(1,3,1)
+distributionPlot([analysis.(analysisParams.field).roi.cohensD]','color', coc_prop(3,:)); hold on
+boxplot([analysis.(analysisParams.field).roi.cohensD])
+title('cohensD')
+subplot(1,3,2)
+distributionPlot([analysis.(analysisParams.field).roi.fanoFactor],'color', coc_prop(3,:)); hold on
+boxplot([analysis.(analysisParams.field).roi.fanoFactor])
+title('fanoFactor')
+subplot(1,3,3)
+distributionPlot([analysis.(analysisParams.field).roi.VI],'color', coc_prop(3,:)); hold on
+boxplot([analysis.(analysisParams.field).roi.VI])
+title('Variability Index')
+set(gcf, 'color', 'w');
+saveas(gcf, fullfile(saveDirectory, 'Variability_all.png'))
+
+
 
 % for resp cells only
 resp_cells = find([analysis.(analysisParams.field).roi.isResponseSignificant] == 1);
 %respOSI = [analysis.(analysisParams.field).roi(resp_cells).OSIFit];
 if ~isempty(resp_cells)
     figure
-    subplot(1,6,1)
+    subplot(1,4,1)
     distributionPlot([analysis.(analysisParams.field).roi(resp_cells).OSI],'color', coc_prop(2,:)); hold on
     boxplot([analysis.(analysisParams.field).roi(resp_cells).OSI])
+    ylim([0 1])
     title('OSI')
-    subplot(1,6,2)
+    subplot(1,4,2)
     distributionPlot([analysis.(analysisParams.field).roi(resp_cells).OSIFit],'color', coc_prop(2,:)); hold on
     boxplot([analysis.(analysisParams.field).roi(resp_cells).OSI])
+    ylim([0 1])
     title('OSI after fitting')
-    subplot(1,6,3)
+    subplot(1,4,3)
     distributionPlot([analysis.(analysisParams.field).roi(resp_cells).OriCircVar],'color', coc_prop(2,:)); hold on
     boxplot([analysis.(analysisParams.field).roi(resp_cells).OriCircVar])
     title('CircVar')
-    subplot(1,6,4)
-    distributionPlot([analysis.(analysisParams.field).roi(resp_cells).cohensD],'color', coc_prop(2,:)); hold on
-    boxplot([analysis.(analysisParams.field).roi(resp_cells).cohensD])
-    title('cohensD')
-    subplot(1,6,5)
+    ylim([0 1])
+    subplot(1,4,4)
+    distributionPlot([analysis.(analysisParams.field).roi(resp_cells).Bandwidth],'color', coc_prop(2,:)); hold on
+    boxplot([analysis.(analysisParams.field).roi(resp_cells).Bandwidth])
+    title('Bandwidth')
+    set(gcf, 'color', 'w');
+    saveas(gcf, fullfile(saveDirectory, 'OSIdistribution_resp.png'))
+    
+    figure
+    subplot(1,2,1)
     distributionPlot([analysis.(analysisParams.field).roi(resp_cells).DSI],'color', coc_prop(4,:)); hold on
     boxplot([analysis.(analysisParams.field).roi(resp_cells).DSI])
     title('DSI')
-    subplot(1,6,6)
+    ylim([0 1])
+    subplot(1,2,2)
     distributionPlot([analysis.(analysisParams.field).roi(resp_cells).DirCircVar],'color', coc_prop(4,:)); hold on
     boxplot([analysis.(analysisParams.field).roi(resp_cells).DirCircVar])
     title('DirCircVar')
+    ylim([0 1])
     set(gcf, 'color', 'w');
-    saveas(gcf, fullfile(saveDirectory, 'OSI_DSI_distribution_resp.png'))
+    saveas(gcf, fullfile(saveDirectory, 'DSI_distribution_resp.png'))
+    
+    figure
+    subplot(1,3,1)
+    distributionPlot([analysis.(analysisParams.field).roi(resp_cells).cohensD],'color', coc_prop(2,:)); hold on
+    boxplot([analysis.(analysisParams.field).roi(resp_cells).cohensD])
+    title('cohensD')
+    subplot(1,3,2)
+    distributionPlot([analysis.(analysisParams.field).roi(resp_cells).fanoFactor],'color', coc_prop(2,:)); hold on
+    boxplot([analysis.(analysisParams.field).roi(resp_cells).fanoFactor])
+    title('fanoFactor')
+    subplot(1,3,3)
+    distributionPlot([analysis.(analysisParams.field).roi(resp_cells).VI],'color', coc_prop(2,:)); hold on
+    boxplot([analysis.(analysisParams.field).roi(resp_cells).VI])
+    title('Variability Index')
+    set(gcf, 'color', 'w');
+    saveas(gcf, fullfile(saveDirectory, 'Variability_resp.png'))
+   
 end
 
 % 3.5 Plot deltaOri vs. distance of ROIs

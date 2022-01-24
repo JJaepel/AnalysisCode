@@ -6,6 +6,7 @@ spk2Col = find(contains(xls_txt(1,:),'spk2'),1);
 volCol = find(contains(xls_txt(1,:),'volume'),1);
 nameCol = find(contains(xls_txt(1,:),'name'),1);
 runCol = find(contains(xls_txt(1,:),'Run'),1);
+flagCol = find(contains(xls_txt(1,:),'Flag'),1); 
 try
     specCol = find(contains(xls_txt(1,:),'special'),1);
 end
@@ -77,6 +78,11 @@ for i = 2:size(xls_txt,1)
         runInd = str2double(runInd);
     end
     exp_info.run(k) = runInd;
+    flagInd = xls_all{i,flagCol};
+    if ischar(flagInd)
+        flagInd = str2double(flagInd);
+    end
+    exp_info.flag(k) = flagInd;
     try
         specInd = xls_all{i,specCol};
         if ischar(specInd)

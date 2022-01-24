@@ -94,7 +94,9 @@ for i = ind
     catch
         analysisParams.cvsFile = [];
     end
-    
+    if exp_info.flag{i} == 1
+        continue
+    end
     if analysisParams.stimType == 4
         PatchType = char(exp_info.stimulus{i});
         Patches(analysisParams)
