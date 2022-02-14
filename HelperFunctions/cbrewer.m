@@ -44,11 +44,11 @@ function [colormap]=cbrewer(ctype, cname, ncol, interp_method)
 
 
     % load colorbrewer data
-    load('C:\Users\jaepelj\Documents\GIT\AnalysisCode\HelperFunctions\colorbrewer.mat')
+    load('C:\Users\jaepelj\Documents\AnalysisCode\HelperFunctions\colorbrewer.mat')
     % initialise the colormap is there are any problems
     colormap=[];
     if (~exist('interp_method', 'var'))
-        interp_method='cubic';
+        interp_method='spline';
     end
 
     % If no arguments

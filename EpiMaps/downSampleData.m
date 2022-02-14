@@ -1,10 +1,13 @@
 function data = downSampleData(data, downsampleFactor)
 
-stackSize        = size(data.rawF);
-stackSize     = floor(stackSize/downsampleFactor);
-downsampledStack = zeros(stackSize,class(data.rawF));
-for i=1:downsampleFactor
-    downsampledStack = downsampledStack+data.rawF(i:downsampleFactor:downsampleFactor*stackSize(1),i:downsampleFactor:downsampleFactor*stackSize(2),i:downsampleFactor:downsampleFactor*stackSize(3))/downsampleFactor;
+downsample = 1/downsampleFactor;
+scaledX = round(size(data,1)*downsample);
+scaledY = round(size(data,2)*downsample);
+        
+downsampledStack = zeros(scaledX,scaledY,size(data,3),'uint16');
+for i = 1:size(data,3)
+    downsampledStack(:,:,i) = imresize(data(:,:,i),[scaledX scaledY]);
 end
-data.rawF = downsampledStack;
+
+data = downsampledStack;
 clear downsampledStack

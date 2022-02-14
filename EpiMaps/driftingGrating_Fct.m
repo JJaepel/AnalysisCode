@@ -28,7 +28,7 @@ analysis.rawFMeanImg = mean(data.rawF,3);
 analysis.baseImg = mean(data.rawF(:,:,1:50),3);
 analysis.gaussMeanImg = imgaussfilt(mean(data.rawF, 3), 4);
 analysis.ROI =true( [size(data.rawF,1),size(data.rawF,2)]); 
-analysis = makeMasks(data, analysis, analysisParams,1);
+analysis = makeMasks(data, analysis, analysisParams.saveDirectory);
 
 %% 4.) Chop traces
 disp('Chopping Traces')

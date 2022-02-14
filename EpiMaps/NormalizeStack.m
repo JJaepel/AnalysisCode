@@ -1,4 +1,4 @@
-function data = NormalizeStack(metadata,data, binningFactor, percentileRank)
+function dff = NormalizeStack(metadata,rawF, binningFactor, percentileRank)
 % The binning factor is used for subsampling the Fo. The approximation is 
 % usually good and dramatically speeds up the computation
 % The percentile cutoff for the rank order filter
@@ -10,8 +10,8 @@ if nargin < 4
     percentileRank = 25;
 end
 
-stackSize = size(data.rawF);
-imgStack = single(reshape(data.rawF,[stackSize(1)*stackSize(2) stackSize(3)]));
+stackSize = size(rawF);
+imgStack = single(reshape(rawF,[stackSize(1)*stackSize(2) stackSize(3)]));
 fps= metadata.Imaging.rate; 
 
 parfor index = 1:(stackSize(1)*stackSize(2))
@@ -22,6 +22,6 @@ parfor index = 1:(stackSize(1)*stackSize(2))
     baselineTrace  = reshape(baselineTrace,size(rawSignalTrace));
     imgStack(index,:) = (rawSignalTrace - baselineTrace)./baselineTrace;
 end
-data.dff = reshape(imgStack, stackSize);
+dff = reshape(imgStack, stackSize);
     
 end

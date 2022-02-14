@@ -1,16 +1,23 @@
-function analysis = makeMasks(data, analysis, analysisParams, verbose)
+function analysis = makeMasks(rawF, analysis, saveDirectory, changeThreshold,verbose)
+
+if nargin < 5
+    verbose = 1;
+end
+if nargin < 4
+    changeThreshold = 0;
+end
 
 %use PCA to make masks, 1st dimension is window, 2nd is areas
-[~, mixedfilters, ~] = SVDsimple(data.rawF,1);
-data.PCAsRaw = mixedfilters;
+[~, mixedfilters, ~] = SVDsimple(rawF,1);
+PCAsRaw = mixedfilters;
 
 %make maks for whole window
 figure
-imagesc(data.PCAsRaw(:,:,1))
-saveas(gcf, [analysisParams.saveDirectory, 'Mask1stPCA_Raw.png'])
+imagesc(PCAsRaw(:,:,1))
+saveas(gcf, [saveDirectory, 'Mask1stPCA_Raw.png'])
 close gcf
 
-mask = data.PCAsRaw(:,:,1);
+mask = PCAsRaw(:,:,1);
 if mask(1,1) > 0
     mask(mask > 0) = 0;
     mask(mask < 0) = 1;
@@ -21,10 +28,10 @@ end
 analysis.mask = logical(mask);
 
 %remove BV
-analysis.maskBV = removeBVfromMask(analysis, analysisParams.changeThreshold);
+analysis.maskBV = removeBVfromMask(analysis, changeThreshold);
 
 %make mask for subregions
-tempMask = data.PCAsRaw(:,:,2);
+tempMask = PCAsRaw(:,:,2);
 tempMask(~analysis.maskBV)=0;
 
 posMask = tempMask;
@@ -52,5 +59,5 @@ else
     analysis.maskV1 = negMask;
     analysis.maskA19 = posMask;
 end
-saveas(gcf, [analysisParams.saveDirectory, 'Mask2ndPCA_Raw.png'])
+saveas(gcf, [saveDirectory, 'Mask2ndPCA_Raw.png'])
 close gcf

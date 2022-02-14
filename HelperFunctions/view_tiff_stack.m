@@ -168,6 +168,13 @@ switch event.Character
             writeVideo(writerObj,frame);
         end
         close(writerObj);
+    case 'g' %make a gif of the movie
+        [avi_fname,avi_path]=uiputfile('tiff_stack.gif','save gif as');
+        frame_bounds=input('Select [start_frame stop_fram], 0 for all frames: ');
+        if frame_bounds==0
+            frame_bounds=[1 nFrames];
+        end
+        save3DmatrixAsGif([avi_path avi_fname], double(data(:,:,frame_bounds(1):frame_bounds(2))));    
     case 'a' % show activity of selected area
         params.as_ind=params.as_ind+1;
         color_ind='mgycrbw';

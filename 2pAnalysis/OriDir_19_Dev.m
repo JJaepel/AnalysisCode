@@ -4,7 +4,7 @@ analysisParams = struct;
 analysisParams.dataType = 1; %data type: 1 = cells, 2 = axons, 3 = spines
 analysisParams.stimType = 1;
 
-%what should it do?
+% what should it do?
 analysisParams.reloadData = 0; %should you reload from suite2p/Miji and do baselining?
 analysisParams.reanalyse =1; %should you reanalyse the data or just plot?
 analysisParams.select = 1; %load only selected data (1, marked in column run) or all data (0)?
@@ -13,7 +13,7 @@ analysisParams.plotRespROIsOnly = 0; %should you also plot traces for all non-re
 analysisParams.server = 0; %load from the server (1) or the raid (0)
 analysisParams.makeROIs = 1;
 
-%analysisParameters
+% analysisParameters
 analysisParams.zThresh = 4;
 analysisParams.fraction = 0.5;
 analysisParams.predictor = 0;
@@ -23,10 +23,12 @@ analysisParams.windowStart = 0;
 analysisParams.windowStop = 2;
 analysisParams.pre = 1;
 
+% color schemes
 cocV3 = cbrewer('seq', 'RdPu',30);
 cocNaive = cocV3(13:17,:);
 cocEarly = cocV3(19:24,:);
 cocAdult = cocV3(26:30,:);
+grey = [0.5 0.5 0.5];
 
 cocV1 = cbrewer('seq', 'PuBuGn',30);
 cocNaiveV1 = cocV1(13:17,:);
@@ -46,11 +48,10 @@ file = '2pExpByStimulus.xlsx';
 [~, xls_txt, xls_all]=xlsread([filePath file], 'driftingGrating');
 exp_info = findExpInfo(xls_txt, xls_all);
 
+% sort experiments by age and region
 allExpInd = find(exp_info.run); %all experiments that need to be reanalyzed
 allV3Ind = find(cell2mat(exp_info.region) == 3);%all V3 exp
 allV1Ind = find(cell2mat(exp_info.region) == 1);%all V1 exp
-
-%Flag = find(cell2mat(exp_info.flag) == 1);
 
 NaiveAge =find(cell2mat(exp_info.EO) == 0); %EO+0
 EarlyAge = find(cell2mat(exp_info.EO) == 2 | cell2mat(exp_info.EO)== 3); %EO2-3
@@ -59,19 +60,26 @@ AdultAge = find(cell2mat(exp_info.EO) > 8); %EO>8
 EarlyInd = intersect(allV3Ind, EarlyAge);
 NaiveInd = intersect(allV3Ind, NaiveAge);
 AdultInd = intersect(allV3Ind, AdultAge);
-AdultInd = AdultInd(1:13);
 
 EarlyIndV1 = intersect(allV1Ind, EarlyAge);
 NaiveIndV1 = intersect(allV1Ind, NaiveAge);
 AdultIndV1 = intersect(allV1Ind, AdultAge);
-AdultIndV1 = AdultIndV1(1:3);
 
-allExp = [EarlyInd EarlyIndV1 NaiveInd NaiveIndV1 AdultIndV1 AdultIndV1];
+% remove bad experiments
+Flag = find(cell2mat(exp_info.flag) == 1);
+EarlyInd = setdiff(EarlyInd, Flag);
+NaiveInd = setdiff(NaiveInd, Flag);
+AdultInd = setdiff(AdultInd, Flag);
+EarlyIndV1 = setdiff(EarlyIndV1, Flag);
+NaiveIndV1 = setdiff(NaiveIndV1, Flag);
+AdultIndV1 = setdiff(AdultIndV1, Flag);
 
-%reanalyze if necessary
-if ~analysisParams.select
-    allExpInd = allExp;
+%reanalyze everything if necessary
+if ~analysisParams.select  
+    allExpInd = [EarlyInd EarlyIndV1 NaiveInd NaiveIndV1 AdultInd AdultIndV1];
 end
+
+%reanalyze only selected ones
 for i = allExpInd
     disp(['Currently analyzing: Ferret ' char(exp_info.animal{i}) ', Experiment ' char(exp_info.exp_id{i})])
     if exp_info.vol{i} == 1
@@ -519,14 +527,14 @@ saveas(gcf, fullfile(save_dir, 'TrialPatternCorrV1.png'))
 
 %% 3.) Plot results single cells
 % a)responsiveness and selectivity portions
-figure
+figure('units','normalized','outerposition',[0 0 1 1]);
 subplot(3, 3, 1)
 allNaive = length(isRespNaive);
 nonRespNaive = length(find([isRespNaive] == 0)) ./allNaive;
 percRespNaive = length(find([isRespNaive] == 1)) ./allNaive;
 h = pie([nonRespNaive percRespNaive]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocNaive(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocNaive(4,:));
 title('Responsive Naive')
 legend({'Non-resp', 'Resp'}, 'Location', 'southoutside')
@@ -538,7 +546,7 @@ nonRespEarly = length(find([isRespEarly] == 0)) ./allEarly;
 percRespEarly = length(find([isRespEarly] == 1)) ./allEarly;
 h = pie([nonRespEarly percRespEarly]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocEarly(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocEarly(4,:));
 title('Responsive Early')
 legend({'Non-resp', 'Resp'}, 'Location', 'southoutside')
@@ -550,7 +558,7 @@ nonRespAdult = length(find([isRespAdult] == 0)) ./allAdult;
 percRespAdult = length(find([isRespAdult] == 1)) ./allAdult;
 h = pie([nonRespAdult percRespAdult]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocAdult(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocAdult(4,:));
 title('Responsive Adult')
 legend({'Non-resp', 'Resp'}, 'Location', 'southoutside')
@@ -562,7 +570,7 @@ oriNaive = length(find([OSIFitNaive] > 0.2)) ./ length(OSIFitNaive);
 nonOriNaive = 1- oriNaive;
 h = pie([nonOriNaive oriNaive]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocNaive(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocNaive(4,:));
 title('Naive')
 legend({'Non-selective', 'Ori-selective'}, 'Location', 'southoutside')
@@ -574,7 +582,7 @@ oriEarly = length(find([OSIFitEarly] > 0.2)) ./length(OSIFitEarly);
 nonOriEarly = 1- oriEarly;
 h = pie([nonOriEarly oriEarly]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocEarly(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocEarly(4,:));
 title('Early')
 legend({'Non-selective', 'Ori-selective'}, 'Location', 'southoutside')
@@ -586,7 +594,7 @@ oriAdult = length(find([OSIFitAdult] > 0.2)) ./length(OSIFitAdult);
 nonOriAdult = 1- oriAdult;
 h = pie([nonOriAdult oriAdult]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocAdult(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocAdult(4,:));
 title('Adult')
 legend({'Non-selective', 'Ori-selective'}, 'Location', 'southoutside')
@@ -597,7 +605,7 @@ dirNaive = length(find([DSINaive] > 0.2)) ./length(DSINaive);
 nonDirNaive = 1- dirNaive;
 h = pie([nonDirNaive dirNaive]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocNaive(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocNaive(4,:));
 title('Direction-selective Naive')
 legend({'Non-selective', 'Dir-selective'}, 'Location', 'southoutside')
@@ -608,7 +616,7 @@ dirEarly = length(find([DSIEarly] > 0.2)) ./length(DSIEarly);
 nonDirEarly = 1- dirEarly;
 h = pie([nonDirEarly dirEarly]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocEarly(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocEarly(4,:));
 title('Early')
 legend({'Non-selective', 'Dir-selective'}, 'Location', 'southoutside')
@@ -619,7 +627,7 @@ dirAdult= length(find([DSIAdult] > 0.2)) ./length(DSIAdult);
 nonDirAdult= 1- dirAdult;
 h = pie([nonDirAdult dirAdult]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocAdult(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocAdult(4,:));
 title('Adult')
 legend({'Non-selective', 'Dir-selective'}, 'Location', 'southoutside')
@@ -630,14 +638,14 @@ set(gcf, 'color', 'w');
 saveas(gcf, fullfile(save_dir, 'resp_cells.png'))
 
 %for V1
-figure
+figure('units','normalized','outerposition',[0 0 1 1]);
 subplot(3, 3, 1)
 allNaiveV1 = length(isRespNaiveV1);
 nonRespNaiveV1 = length(find([isRespNaiveV1] == 0)) ./allNaiveV1;
 percRespNaiveV1 = length(find([isRespNaiveV1] == 1)) ./allNaiveV1;
 h = pie([nonRespNaiveV1 percRespNaiveV1]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocNaiveV1(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocNaiveV1(4,:));
 title('Responsive Naive V1')
 legend({'Non-resp', 'Resp'}, 'Location', 'southoutside')
@@ -649,7 +657,7 @@ nonRespEarlyV1 = length(find([isRespEarlyV1] == 0)) ./allEarlyV1;
 percRespEarlyV1 = length(find([isRespEarlyV1] == 1)) ./allEarlyV1;
 h = pie([nonRespEarlyV1 percRespEarlyV1]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocEarlyV1(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocEarlyV1(4,:));
 title('Responsive Early V1')
 legend({'Non-resp', 'Resp'}, 'Location', 'southoutside')
@@ -661,7 +669,7 @@ nonRespAdultV1 = length(find([isRespAdultV1] == 0)) ./allAdultV1;
 percRespAdultV1 = length(find([isRespAdultV1] == 1)) ./allAdultV1;
 h = pie([nonRespAdultV1 percRespAdultV1]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocAdultV1(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocAdultV1(4,:));
 title('Responsive Adult V1')
 legend({'Non-resp', 'Resp'}, 'Location', 'southoutside')
@@ -672,7 +680,7 @@ oriNaiveV1 = length(find([OSIFitNaiveV1] > 0.2)) ./ length(OSIFitNaiveV1);
 nonOriNaiveV1 = 1- oriNaiveV1;
 h = pie([nonOriNaiveV1 oriNaiveV1]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocNaiveV1(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocNaiveV1(4,:));
 title('Naive V1')
 legend({'Non-selective', 'Ori-selective'}, 'Location', 'southoutside')
@@ -683,7 +691,7 @@ oriEarlyV1 = length(find([OSIFitEarlyV1] > 0.2)) ./length(OSIFitEarlyV1);
 nonOriEarlyV1 = 1- oriEarlyV1;
 h = pie([nonOriEarlyV1 oriEarlyV1]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocEarlyV1(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocEarlyV1(4,:));
 title('Early V1')
 legend({'Non-selective', 'Ori-selective'}, 'Location', 'southoutside')
@@ -694,7 +702,7 @@ oriAdultV1 = length(find([OSIFitAdultV1] > 0.2)) ./length(OSIFitAdultV1);
 nonOriAdultV1 = 1- oriAdultV1;
 h = pie([nonOriAdultV1 oriAdultV1]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocAdultV1(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocAdultV1(4,:));
 title('Adult V1')
 legend({'Non-selective', 'Ori-selective'}, 'Location', 'southoutside')
@@ -705,7 +713,7 @@ dirNaiveV1 = length(find([DSINaiveV1] > 0.2)) ./length(DSINaiveV1);
 nonDirNaiveV1 = 1- dirNaiveV1;
 h = pie([nonDirNaiveV1 dirNaiveV1]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocNaiveV1(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocNaiveV1(4,:));
 title('Direction-selective Naive V1')
 legend({'Non-selective', 'Dir-selective'}, 'Location', 'southoutside')
@@ -716,7 +724,7 @@ dirEarlyV1 = length(find([DSIEarlyV1] > 0.2)) ./length(DSIEarlyV1);
 nonDirEarlyV1 = 1- dirEarlyV1;
 h = pie([nonDirEarlyV1 dirEarlyV1]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocEarlyV1(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocEarlyV1(4,:));
 title('Early V1')
 legend({'Non-selective', 'Dir-selective'}, 'Location', 'southoutside')
@@ -727,7 +735,7 @@ dirAdultV1= length(find([DSIAdultV1] > 0.2)) ./length(DSIAdultV1);
 nonDirAdultV1= 1- dirAdultV1;
 h = pie([nonDirAdultV1 dirAdultV1]);
 hp = findobj(h, 'Type', 'patch');
-set(hp(1), 'FaceColor', cocAdultV1(1,:));
+set(hp(1), 'FaceColor', grey);
 set(hp(2), 'FaceColor', cocAdultV1(4,:));
 title('Adult V1')
 legend({'Non-selective', 'Dir-selective'}, 'Location', 'southoutside')
@@ -1048,7 +1056,7 @@ figure
 subplot(1,6,1)
 distributionPlot(FanoFactorNaive','color', cocNaive(4,:)); hold on
 boxplot(FanoFactorNaive,'Label', {'Naive'})
-xlabel('(FanoFactor')
+xlabel('FanoFactor')
 set(gca,'Box','off');
 
 subplot(1,6,2)
@@ -1100,7 +1108,7 @@ set(gca,'box','off','ycolor','w')
 subplot(1,6,4)
 distributionPlot(BandthWidthNaiveV1','color', cocNaiveV1(4,:)); hold on
 boxplot(BandthWidthNaiveV1, 'Label', {'Naive V1'})
-xlabel('DSI')
+xlabel('BandthWidth')
 set(gca,'Box','off');
 
 subplot(1, 6, 5)
