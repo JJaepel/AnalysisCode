@@ -1,12 +1,12 @@
-close all
+%close all
 clear all
 analysisParams = struct;
 
 %% switch board for analysis variable
 
 %analysisParameters
-analysisParams.stimType = 1;  % 1 = driftingGrating, 2 = OriSf, 3 = OriTf, 4 = flash, 5 = spontaneous
-analysisParams.server = 1;
+analysisParams.stimType = 5;  % 1 = driftingGrating, 2 = OriSf, 3 = OriTf, 4 = flash, 5 = spontaneous
+analysisParams.server = 0;
 analysisParams.select = 1;
 analysisParams.downsample = 2;
 analysisParams.intrinsic = 0;
@@ -14,9 +14,9 @@ analysisParams.pre = 1;
 analysisParams.changeThreshold = 0;
 analysisParams.clean = 0;
 
-analysisParams.field = 'rawF';
-analysisParams.register = 1;
-analysisParams.bandpass = 1;
+analysisParams.field = 'high';
+analysisParams.register = 0;
+analysisParams.bandpass = 0;
 %% list all experiments
 
 filePath = 'F:\Organization\Animals\';

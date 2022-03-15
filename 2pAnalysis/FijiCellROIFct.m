@@ -1,20 +1,9 @@
-function  FijiSpineROIFct(server, animal, name, level)
-
-computer = getenv('COMPUTERNAME');
-switch computer
-    case 'DF-LAB-WS38'
-        RaidDir = 'F:\Data\';
-        ServerDir = 'Z:\Juliane\';
-    case 'DF-LAB-WS22'
-        RaidDir = 'C:\Data\';
-        ServerDir = 'Z:\Juliane\';
-end
-
+function  FijiCellROIFct(server, animal, name, level)
 %% loading experiment data
 if server
-    drive           = ServerDir;
+    drive       = 'Z:\Juliane\';
 else
-    drive           = RaidDir;
+    drive           = 'F:\';
 end
 
 baseDirectory   = [drive 'Data\2P_data\'];
@@ -49,6 +38,7 @@ end
 %% make projection for spine ROIing
 cd(saveDir)
 meanImg = uint16(mean(tifStack(:,:,1:1000),3));
+
 imwrite(meanImg, saveFile, 'tiff', 'writemode', 'overwrite', 'compression', 'none')
 avg = mijread([saveDir filename]);
 MIJ.run('SpineROIs')
@@ -59,26 +49,8 @@ MIJ.run('AxonROIs')
 MIJ.run('Close All');
 close gcf
 
-%% convert RoiSet to mat file
-[sROI] = ReadImageJROI('RoiSet.zip');
-numROIs = size(sROI,2); %total number of ROIs
-ROISegNum = zeros(numROIs,1); %keep track of dendritic segment number
-isDendrite = zeros(numROIs,1); %keep track of dendritic ROIs
-
-% mark which ROIs are on which dendrite and which ones are dendrites/spines
-currentDendrite = 1;
-for n = 1:numROIs
-    ROISegNum(n) = currentDendrite;
-    if strcmp(sROI{n}.strType,'PolyLine') %strType for straightening
-        isDendrite(n) = 1;
-        %assumes last ROI in each segment is the dendrite
-        currentDendrite = currentDendrite + 1;
-    end
-end
 dim = size(meanImg);
 [ROIs, ~] = ROIconvert('RoiSet.zip', [dim(1) dim(2)]);
-
-%% extract ROI positions and save all information in structure
 
 data = [];
 for m = 1:length(ROIs)    
@@ -87,9 +59,6 @@ for m = 1:length(ROIs)
     data.roi(m).body = ROIs(m).body;
     data.roi(m).mask = [ROIs(m).perimeter];
     data.roi(m).name = m;
-    data.roi(m).spine = ~isDendrite(m);
-    data.roi(m).dendrite = isDendrite(m);
-    data.roi(m).semgnet = ROISegNum(m);
     if level
         if data.roi(m).xPos > 512
             if data.roi(m).yPos > 512
@@ -110,4 +79,3 @@ end
 %% save meanImg as template
 data.template = double(meanImg);
 save('ROIs.mat', 'data', '-mat') 
-end

@@ -1,21 +1,21 @@
-close all
-clear all
+function spontaneousNewFct(analysisParams)
+%close all
 
 % change things here - nowhere else!!! those are variables to decide which
 % experiment to run and whether you need to reload, what filtering and how
 % much to downsample
 % variables of experiment
-animal = 'F2564_2021-08-26';
-expt_id =2;
-sp2id = expt_id;
+animal = analysisParams.animal;
+expt_id = analysisParams.expID;
+sp2id = analysisParams.sp2ID;
 
 % variables for running - need to be 1 the first time it is run and can be
 % changed afterwards to speed it up
-reload = 1;
+reload = 0;
 register = 1; 
 newMask = 1;
-field = 'high'; %decide if you want to use dff, high or filtered data
-downsample = 2; % if you run into memory issues, change this number
+field = analysisParams.field; %decide if you want to use dff, high or filtered data
+downsample = analysisParams.downsample; % if you run into memory issues, change this number
 verbose = 0; %change to 1 if you want to see all event locations and traces
 
 
@@ -25,9 +25,9 @@ verbose = 0; %change to 1 if you want to see all event locations and traces
 computer = getenv('COMPUTERNAME');
 switch computer
     case 'DF-LAB-WS38'
-        EpiDir = 'F:\Data\Epi\';
-        Sp2Dir = 'F:\Data\Spike2Data\';
-        SaveDir = 'F:\Data\ImageAnalysis\';
+        EpiDir = 'Z:\Juliane\Data\Epi\';
+        Sp2Dir = 'Z:\Juliane\Data\Spike2Data\';
+        SaveDir = 'Z:\Juliane\Data\ImageAnalysis\';
         lowMemory = 0;
     case 'DF-LAB-WS22'
         EpiDir = 'Z:\Juliane\Data\Epi\';
@@ -36,14 +36,10 @@ switch computer
         lowMemory = 1;
 end
 
-EpiDirectory = [EpiDir filesep animal filesep 'tseries_' num2str(expt_id) filesep];
-if expt_id > 9
-    Sp2dDirectory = [Sp2Dir animal filesep 't000' num2str(sp2id) filesep];
-    saveDirectory = [SaveDir animal filesep 't000' num2str(expt_id) filesep];
-else
-    Sp2dDirectory = [Sp2Dir animal filesep 't0000' num2str(sp2id) filesep];
-    saveDirectory = [SaveDir animal filesep 't0000' num2str(expt_id) filesep];
-end
+EpiDirectory = [EpiDir filesep animal filesep num2str(expt_id) filesep];
+Sp2dDirectory = [Sp2Dir animal filesep num2str(sp2id) filesep];
+saveDirectory = [SaveDir animal filesep num2str(sp2id) filesep];
+
 
 if ~exist(saveDirectory, 'dir')
     mkdir(saveDirectory);  
@@ -94,8 +90,8 @@ end
 %% 2.) load metadata
 metadata.Imaging=LoadFrameTimes(Sp2dDirectory);
 metadata.StimParams.path=fullfile(Sp2dDirectory);
-metadata.expTimeTotal = mean(diff(metadata.Imaging.time))*size(rawF,3);
-frameTimes = linspace(0,metadata.expTimeTotal, size(rawF,3));
+expTimeTotal = mean(diff(metadata.Imaging.time))*size(rawF,3);
+frameTimes = linspace(0,expTimeTotal, size(rawF,3));
 
 %% 3.) get ROI of window and of subregions
 if newMask %takes care of making the ROIs of the two areas
@@ -119,7 +115,7 @@ if reload || newMask %if you have a new mask or reloaded the data, do dff and fi
         switch field
             case 'high'
                 disp('High-pass filtering data')
-                data.filt=LowHighNormalizeData(double(data.dff), analysis.ROI, 1,10);
+                data.filt=LowHighNormalizeData(double(data.dff), analysis.mask, 1,10);
             case 'filt'
                 disp('Applying bandpass filtering')
                 data.high = HighNormalizeData(double(data.dff), analysis.mask,5);
@@ -130,16 +126,9 @@ if reload || newMask %if you have a new mask or reloaded the data, do dff and fi
         data.high = HighNormalizeData(double(data.dff), analysis.mask,5);
     end
     disp('Saving filtered data')
-    save(fullfile(saveDirectory, 'data.mat'),'-v7.3', 'data');
+    %save(fullfile(saveDirectory, 'data.mat'),'-v7.3', 'data');
 end
-%clear rawF
-
-%% make seed-based correlation maps
-indices = 1:(size(data.dff,1)*size(data.dff,2));
-indicesMask = find(analysis.maskBV ==1);
-[activeFrameStack,numberOfActiveEvents,eventOnset,eventDuration] = getActiveFrames(data.dff);
-seedBasedCorr(data.filt(:,:,eventOnset), indices);
-seedBasedCorrDelay(data.high(:,:,1:end-1), indices,5);
+clear rawF
 
 %% 4.) Get traces of each area
 %data is goign to be turned into integers, but was normalized and filtered
@@ -173,25 +162,47 @@ analysis.(field).A19Trace = (A19Trace-min(A19Trace))/(max(A19Trace)-min(A19Trace
 analysis.(field).eventsV1 = findEvents(analysis.(field).V1Trace,'V1',verbose, saveDirectory); %function could still be a bit improved, set to verbose to look for what is goingw wrong - like separating multiple events
 analysis.(field).eventsA19 = findEvents(analysis.(field).A19Trace,'A19',verbose, saveDirectory);
 
-%% 5.b) Find event location at on/offset and peak event size
+%% 5.b) Find event location at onset and peak
 analysis.(field).eventsV1 = findLocations(analysis.(field).eventsV1, analysis.(field).DataV1,'V1',verbose, saveDirectory);
 analysis.(field).eventsA19 = findLocations(analysis.(field).eventsA19, analysis.(field).DataA19,'A19',verbose, saveDirectory);
 
 %% 5.c) Find local traces and events details
-%analysis.(field).eventsV1 = findLocalEvents(analysis.(field).DataV1,analysis.(field).eventsV1,'V1',verbose,saveDirectory); 
-%analysis.(field).eventsA19 = findLocalEvents(analysis.(field).DataA19,analysis.(field).eventsA19,'A19',verbose,saveDirectory); 
+analysis.(field).eventsV1 = findLocalEvents(analysis.(field).DataV1,analysis.(field).eventsV1,'V1',verbose,saveDirectory); 
+analysis.(field).eventsA19 = findLocalEvents(analysis.(field).DataA19,analysis.(field).eventsA19,'A19',verbose,saveDirectory); 
 
 %% 5.d) Classify events based on where global onsets are
 windowTime = [0.5, 1,2]; %within what time frame should the other event onset be? -> can be played around with
 for i = 1:length(windowTime)
     analysis.(field).eventsV1 = findEventSequence(analysis.(field).eventsV1,analysis.(field).eventsA19, metadata, windowTime(i));
     analysis.(field).eventsA19 = findEventSequence(analysis.(field).eventsA19,analysis.(field).eventsV1, metadata, windowTime(i));
+    if windowTime(i) < 1
+        columnField = ['class0' num2str(windowTime(i)*10)];
+    else
+        columnField = ['class' num2str(windowTime(i)*10)];
+    end
+    
+    figure
+    subplot(1,2,1)
+    labels = {'no other event', 'simultaneous', 'preceding events', 'following events'};
+    classSizes = [sum([analysis.(field).eventsV1.(columnField)] == 0), sum([analysis.(field).eventsV1.(columnField)] == 1),sum([analysis.(field).eventsV1.(columnField)] == 2),sum([analysis.(field).eventsV1.(columnField)] == 3)];
+    classPercentage = classSizes/sum(classSizes);
+    bar(classPercentage)
+    set(gca,'xticklabel',labels)
+    ylabel('Percentage of events')
+    title(['Events in V1, window: ' num2str(windowTime(i)) ' s']);
+    
+    subplot(1,2,2)
+    classSizes = [sum([analysis.(field).eventsA19.(columnField)] == 0), sum([analysis.(field).eventsA19.(columnField)] == 1),sum([analysis.(field).eventsA19.(columnField)] == 2),sum([analysis.(field).eventsA19.(columnField)] == 3)];
+    classPercentage = classSizes/sum(classSizes);
+    bar(classPercentage)
+    set(gca,'xticklabel',labels)
+    ylabel('Percentage of events')
+    title(['Events in A19, window: ' num2str(windowTime(i)) ' s']);
+    set(gcf, 'color', 'w');
+    saveas(gcf, fullfile(saveDirectory, ['Event ' columnField ' s']))
 end
 
-%% 6.a) Plot event characteristics
-plotEventSummaries(analysis.(field).eventsV1,analysis.(field).eventsA19, metadata,saveDirectory) 
-
-%% 6.b) Do cross-correlogram for all events (globally, independent of whether there is an event in the other area)
+%% 6.a) Do cross-correlogram for all events (globally, independent of whether there is an event in the other area)
 doCrossCorrelation(analysis.(field).eventsV1,analysis.(field).V1Trace,analysis.(field).A19Trace,metadata, 'onset', saveDirectory, 'V1');
 doCrossCorrelation(analysis.(field).eventsV1,analysis.(field).V1Trace,analysis.(field).A19Trace,metadata, 'peak', saveDirectory, 'V1');
 doCrossCorrelation(analysis.(field).eventsA19,analysis.(field).A19Trace,analysis.(field).V1Trace,metadata, 'onset', saveDirectory, 'A19');
@@ -199,7 +210,7 @@ doCrossCorrelation(analysis.(field).eventsA19,analysis.(field).A19Trace,analysis
 
 %% 6.b) Do cross-correlogram for all local events that have a corresponding event in the other area
 % for i = 1:length(windowTime)
-% doLocalCrossCorrelation(analysis.(field).eventsV1,analysis.(field).eventsA19,windowTime,metadata, 'onset', saveDirectory, 'V1'); %WORK IN PROGRESS
+doLocalCrossCorrelation(analysis.(field).eventsV1,analysis.(field).eventsA19,windowTime,metadata, 'onset', saveDirectory, 'V1'); %WORK IN PROGRESS
 % end
 %% get ative Framstes, compute correlations of the imaging stack and show it
 % Computes correlations of the imaging stack (spontaneous, response, signal, or noise). 
@@ -209,5 +220,6 @@ doCrossCorrelation(analysis.(field).eventsA19,analysis.(field).A19Trace,analysis
             %                  to (x,y,n), where n is all images
             %    *Signal:      Takes in a (x,y,nCond,nTrials,t), averages along the fourth dimension,
             %    *Noise        Computes correlations along nCond.
-corrTable = computeCorrelationTable(activeFrameStack,expParam.ROI);
-showCorrelationStructure(corrTable,expParam, saveDirectory)
+% [activeFrameStack,numberOfActiveEvents,eventOnset,eventDuration] = getActiveFrames(data.rawF,expParam);
+% corrTable = computeCorrelationTable(activeFrameStack,expParam.ROI);
+% showCorrelationStructure(corrTable,expParam, saveDirectory)

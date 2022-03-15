@@ -57,7 +57,13 @@ for slice = 1:numSlices
         imgStack = squeeze(imgStack);
         dat = squeeze(squeeze(sum(sum(imgStack,1),2)));
         [a,id] = max(dat);
-        template(:,:,fileNum) = mean(imgStack(:,:,id-15:id+25),3);
+        if id < 15
+            template(:,:,fileNum) = mean(imgStack(:,:,id:id+35),3);
+        elseif id > size(imgStack,3)-25
+            template(:,:,fileNum) = mean(imgStack(:,:,id-20:end),3);
+        else
+            template(:,:,fileNum) = mean(imgStack(:,:,id-15:id+25),3);
+        end
     end
     [a,id] = max(sum(sum(template,1),2));
     template = squeeze(template(:,:,id));

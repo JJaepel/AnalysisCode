@@ -9,7 +9,7 @@ end
 if nargin < 5
     saveDir = cd;
 end
-
+flaggedEvents = [];
 for event = 1:length(eventData)
     % 1.) Find local trace and derivatived based on event location
     locationMask = eventData(event).peakTimeArea;
@@ -24,10 +24,16 @@ for event = 1:length(eventData)
     
     % 2.) find local peak
     [peakAmp,peakPos] = findpeaks(smooth(smooth(eventData(event).localTrace)));
+    
     threshold = mean(eventData(event).localTrace(:));
     peakThresholded = find(peakAmp>threshold);
     peakPos = peakPos(peakThresholded);
     peakAmp = peakAmp(peakThresholded);
+    
+    if isempty(peakAmp)
+        flaggedEvents = [flaggedEvents event];
+        continue
+    end
     
     %if there are multiple peaks, find the one closest to the whole Area
     %trace peak
@@ -44,33 +50,34 @@ for event = 1:length(eventData)
     halfMax = peakAmp*0.5;
     halfMax = max(halfMax,std(trace(:))); 
     onsetHalfMax =  peakPos-1;
-    while  eventData(event).localTrace(onsetHalfMax) > halfMax
+    while  eventData(event).localTrace(onsetHalfMax) > halfMax && onsetHalfMax > 1
         onsetHalfMax = onsetHalfMax-1;
     end
     
     %then look for how long from there the derivativ is positive
     onsetThreshold = std(derivatives);  
     onsetTimeTotal = onsetHalfMax;
-    try
-        while eventData(event).localDeriv(onsetTimeTotal) > onsetThreshold
-            onsetTimeTotal = onsetTimeTotal-1;
-        end
-    catch
-        onsetTimeTotal = 0;
+%     try
+    while eventData(event).localDeriv(onsetTimeTotal) && onsetTimeTotal  > 1
+        onsetTimeTotal = onsetTimeTotal-1;
     end
+%     catch
+%         onsetTimeTotal = 0;
+%     end
     onsetTimeTotal = onsetTimeTotal+1;
     eventData(event).localOnset = onsetTimeTotal+startFrame;
     
     % 4.) find offset
     %first look for the first value that is half the size of the peak
+    %if it does not happen, take the max value of the cut out trace
     offsetHalfMax = peakPos+1;
-    while   eventData(event).localTrace(offsetHalfMax) > halfMax
+    while   eventData(event).localTrace(offsetHalfMax) > halfMax && offsetHalfMax < size(eventData(event).localTrace,1)
         offsetHalfMax = offsetHalfMax+1;
     end
     %then look for how long from there the derivative is above threshold
     offsetThreshold = -0.5*std(derivatives);
     offsetTimeTotal = offsetHalfMax;
-    while eventData(event).localDeriv(onsetTimeTotal)< offsetThreshold
+    while eventData(event).localDeriv(offsetTimeTotal)< offsetThreshold && offsetTimeTotal  < size(eventData(event).localDeriv,1)
         offsetTimeTotal = offsetTimeTotal+1;
     end
     offsetTimeTotal = offsetTimeTotal-1;
@@ -98,5 +105,12 @@ for event = 1:length(eventData)
         ylabel('local derivative')
         set(gcf, 'color', 'w');
         saveas(gcf, fullfile(saveDir, [AreaName ' Local Event Nr ' num2str(event)]))
+    end
+    disp(['Event Nr: ' num2str(event)]);
+end
+
+if ~isempty(flaggedEvents)
+    for i = 1:length(flaggedEvents)
+        eventData(flaggedEvents(i)) = [];
     end
 end

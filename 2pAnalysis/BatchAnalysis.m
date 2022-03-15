@@ -10,7 +10,7 @@ analysisParams.reanalyse = 1; %should you reanalyse the data or just plot?
 analysisParams.select = 1; %load only selected data (1, marked in column run) or all data (0)?
 analysisParams.plotROIs = 1;   %should you plot traces for all resp ROIs?
 analysisParams.plotRespROIsOnly = 0; %should you also plot traces for all non-resp ROIs?
-analysisParams.server = 0; %load from the server (1) or the raid (0)
+analysisParams.server = 1; %load from the server (1) or the raid (0)
 analysisParams.makeROIs = 1;
 
 %analysisParameters
@@ -22,17 +22,24 @@ analysisParams.field = 'dff'; %rawRes for spines
 analysisParams.windowStart = 0;
 analysisParams.windowStop = 2;
 analysisParams.pre = 1;
+analysisParams.manual = 1; %do manual ROIs instead of suite2p registration
 
 %% list all experiments 
-% if analysisParams.server
-%     filePath = 'Z:\Juliane\Organization\Animals\';
-% else
-     filePath = 'F:\Organization\Animals\';
-% end
+
+computer = getenv('COMPUTERNAME');
+switch computer
+    case 'DF-LAB-WS38'
+        filePath = 'F:\Organization\Animals\';
+    case 'DF-LAB-WS22'
+        filePath = 'Z:\Hannah\';
+end
 
 switch analysisParams.dataType
     case 1
         file = '2pExpByStimulus.xlsx';
+        if analysisParams.manual == 1
+            Miji
+        end
     case 2
         file = '2pExpByStimulusAxon.xlsx';
         Miji
@@ -67,6 +74,11 @@ end
 if analysisParams.dataType == 3
     getSubcellularRegistration(analysisParams, exp_info, ind)
     getROIsSpines(analysisParams, exp_info, ind)
+end
+
+if analysisParams.dataType == 1 && analysisParams.manual == 1
+    getSubcellularRegistration(analysisParams, exp_info, ind)
+    getROIsCells(analysisParams, exp_info, ind)
 end
 
 

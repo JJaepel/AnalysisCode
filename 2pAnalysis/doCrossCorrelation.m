@@ -31,6 +31,7 @@ for i = 1:length(events)
             startFrame = max(1,events(i).peakTime-1*secWindow);
             endFrame = startFrame+secWindow*2;
     end
+    endFrame = min(endFrame, size(AreaTrace,1));
     firstTrace = AreaTrace(startFrame:endFrame);
     secondTrace = secAreaTrace(startFrame:endFrame);
     [corTrace,lag] = xcorr(firstTrace,secondTrace);%,'normalized');
@@ -39,9 +40,12 @@ for i = 1:length(events)
    
     if length(firstTrace) < lengthTrace
         zerosToAdd = zeros(lengthTrace-length(firstTrace),1);
-        firstTrace = [firstTrace zerosToAdd];
-        secondTrace = [secondTrace zerosToAdd];
-        corTrace = [zerosToAdd corTrace zerosToAdd];
+        firstTrace = [firstTrace; zerosToAdd];
+        secondTrace = [secondTrace; zerosToAdd];
+        corTrace = [zerosToAdd; corTrace; zerosToAdd];
+        lagBefore = linspace(lag(1)-length(zerosToAdd), lag(1)-1, length(zerosToAdd));
+        lagAfter = linspace(lag(end)+1,lag(end)+length(zerosToAdd), length(zerosToAdd));
+        lag = [lagBefore lag lagAfter];
     end
     
     %save all

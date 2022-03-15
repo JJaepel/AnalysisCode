@@ -1,13 +1,22 @@
 function GratingAnalysis(analysisParams)
 
-close all
-
-%% 0.) define folders and structures
-if analysisParams.server == 0
-    drive = 'F:\';
-else 
-    drive = 'Z:\Juliane\';
+computer = getenv('COMPUTERNAME');
+switch computer
+    case 'DF-LAB-WS38'
+        RaidDir = 'F:\Data\';
+        ServerDir = 'Z:\Juliane\';
+    case 'DF-LAB-WS22'
+        RaidDir = 'C:\Data\';
+        ServerDir = 'Z:\Juliane\';
 end
+
+%% 0). Defining folders and files
+if server
+    drive           = ServerDir;
+else
+    drive           = RaidDir;
+end
+
 
 TwoPhontondir = [drive 'Data\2P_Data\'];
 Sp2dir = [drive '\Data\Spike2Data\'];
@@ -44,8 +53,11 @@ if analysisParams.reloadData
     % load tif data
     switch analysisParams.dataType
         case 1
-            data = LoadRoisS2p(analysisParams);
-            
+            if analysisParams.manual
+                data = SpineROIExtractFct(analysisParams);    
+            else
+                data = LoadRoisS2p(analysisParams);
+            end
             %do baseline filtering and compute dff
             if strcmp(analysisParams.field, 'dff')
                 [metadata, data] = baselinePercentileFilter(metadata, data,'rawF', 'baseline', 60, 30);

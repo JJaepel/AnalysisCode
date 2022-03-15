@@ -19,14 +19,6 @@ peakTime = peakTime(peakThresholded);
 peakTimes = zeros(length(expTrace),1);
 peakTimes(peakTime) = 1;
 
-[peaksValue,peakTime] = findpeaks(smooth(smooth(expTrace)));
-threshold = mean(expTrace(:));
-peakThresholded = find(peaksValue>threshold);
-peakTime = peakTime(peakThresholded);
-
-peakTimes = zeros(length(expTrace),1);
-peakTimes(peakTime) = 1;
-
 %% 2.) Find event onset and offset
 dydx = gradient(expTrace);
 derivatives = zscore(dydx);
@@ -105,11 +97,14 @@ for i=1:length(peakTime)
     events(i).onset = onsetTime(i);
     events(i).peakTime = peakTime(i);
     events(i).offset = offsetTime(i);
+    events(i).duration = offsetTime(i)-onsetTime(i);
     
     startFrame = max(1,peakTime(i)-49);
     endFrame = min(size(expTrace,1),peakTime(i)+49);
     events(i).trace = expTrace(startFrame:endFrame);
     events(i).deriv = derivatives(startFrame:endFrame);
+    
+    events(i).peakAmp = expTrace(peakTime(i));
     
     if verbose
         figure

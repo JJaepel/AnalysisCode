@@ -2,9 +2,9 @@ close all
 clear all
 addpath(genpath('F:\Code\FromMadineh\ScanImage'));
 
-animal = 'F2573_2021-09-14';
-expt_id =2;
-sp2id = expt_id;
+animal = 'F2635_2022-02-17';
+expt_id =15;
+sp2id = 16;
 
 close all
 EpiDir = 'Z:\Juliane\Data\Epi\';
@@ -30,7 +30,7 @@ if ~exist(analysisParams.saveDirectory, 'dir')
 end
 
 analysisParams.expt_id = expt_id;
-analysisParams.baseDirectory = EpiDirectory;
+analysisParams.baseDirectory = EpiDir;
 
 %% load metadata
 metadata.StimParams=LoadStimParams(analysisParams.Sp2dDirectory);

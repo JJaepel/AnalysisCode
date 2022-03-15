@@ -1,9 +1,9 @@
 close all
 clear all
 
-animal = 'F2573_2021-09-14';
-expt_id = 11;
-sp2id = expt_id;
+animal = 'F2636_2022-02-14';
+expt_id = 12;
+sp2id = 12;
 
 close all
 EpiDir = 'Z:\Juliane\Data\Epi\';

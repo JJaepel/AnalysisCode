@@ -18,7 +18,7 @@ function showCorrelationStructure(corrTable,ROI, analysis, saveDirectory)
     figure; 
     % Show sorted correlation table
     subplot(1,3,1); 
-        [~,sortingMatrix] = sort(analysis.sortingMatrix(analysis.ROIActive(:)));
+        [~,sortingMatrix] = sort(analysis.sortingMatrix(analysis.maskBVActive(:)));
         sortedCorrTable = corrTable(sortingMatrix(:),:);
         sortedCorrTable = sortedCorrTable(:,sortingMatrix(:));
         imagesc(sortedCorrTable); 
@@ -38,7 +38,7 @@ function showCorrelationStructure(corrTable,ROI, analysis, saveDirectory)
     subplot(1,3,3);
     while(1)
         try
-            imagesc(recomputeImage(real(corrTable(index,:)),analysis.ROI)); 
+            imagesc(recomputeImage(real(corrTable(index,:)),ROI)); 
             colormap(analysis.LUT); axis image; caxis(analysis.clippingRange);
             title(sprintf('x=%d,y=%d,index=%d',round(x),round(y),index)); 
             colorbar

@@ -66,7 +66,7 @@ NaiveIndV1 = intersect(allV1Ind, NaiveAge);
 AdultIndV1 = intersect(allV1Ind, AdultAge);
 
 % remove bad experiments
-Flag = find(cell2mat(exp_info.flag) == 1);
+Flag = find(exp_info.flag == 1);
 EarlyInd = setdiff(EarlyInd, Flag);
 NaiveInd = setdiff(NaiveInd, Flag);
 AdultInd = setdiff(AdultInd, Flag);

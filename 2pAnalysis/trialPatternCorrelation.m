@@ -17,7 +17,7 @@ function [corrCoeff, corrTrialsMatched, corrTrialsOrtho] = trialPatternCorrelati
 numTrials = (metadata.StimParams.uniqStims-1) * metadata.StimParams.numTrials;
 stimWindow=(analysis.(field).windowStart: analysis.(field).windowStop);
 
-respCells = linspace(1,length(analysis.dff.roi), length(analysis.dff.roi)); %taking all cells
+respCells = linspace(1,length(analysis.(field).roi), length(analysis.(field).roi)); %taking all cells
 %respCells = find([analysis.(field).roi.isResponseSignificant] == 1); %taking only significant responders
 numCells = length(respCells); 
 
