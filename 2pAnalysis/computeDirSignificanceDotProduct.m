@@ -41,4 +41,4 @@ dot_prods = ([real(dir_vec) imag(dir_vec)] * [real(ot_vec) imag(ot_vec)]');
 
  % now compute p value
 
-[h,p] = ttest(dot_prods, 'alpha', 0.1);
+[h,p] = ttest(dot_prods, [],'alpha', 0.1);

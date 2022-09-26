@@ -21,15 +21,23 @@ function [tifStack] = readingImagingDataMaskRestricted(EpiDirectory, spatialDown
         threshold(threshold<0.1)=0; threshold(threshold>0.1)=1;
         xVals = find(sum(threshold,2)>5); yVals = find(sum(threshold,1)>5);
         if min(xVals) < 6
-            xRange = 1:max(xVals)+5;
-        elseif max(xVals)+5 > size(threshold,2)
+            if max(xVals)+1 > size(threshold,1)
+                xRange= 1:max(xVals);
+            else
+                xRange = 1:max(xVals)+5;
+            end
+        elseif max(xVals)+1 > size(threshold,1)
             xRange= min(xVals)-5:max(xVals);
         else
             xRange = min(xVals)-5:max(xVals)+5;
         end
         if min(yVals) < 6
-            yRange = 1:max(yVals)+5;
-        elseif max(yVals)+5 > size(threshold,1)
+            if max(yVals)+1 > size(threshold,2)
+                yRange= 1:max(yVals);
+            else
+                yRange = 1:max(yVals)+5;
+            end
+        elseif max(yVals)+1 > size(threshold,2)
             yRange= min(yVals)-5:max(yVals);
         else
             yRange = min(yVals)-5:max(yVals)+5;

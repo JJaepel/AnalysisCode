@@ -17,16 +17,34 @@ analysisLength = preStimPeriod + stimDur + postPeriod;
 for cc = 1:length(data.roi)
     data.roi(cc).cyc = zeros(metadata.StimParams.uniqStims, metadata.StimParams.numTrials, analysisLength); 
     trialList = zeros(1, metadata.StimParams.uniqStims);
-
-    for i = 1:metadata.StimParams.numberOfStims
-        stimTimeStart = find(TwoPhotonTimes > metadata.StimParams.StimOnTimes(2,i),1);
-        windowStart = stimTimeStart-preStimPeriod+1;
-        windowStop = stimTimeStart + stimDur + postPeriod;
-        stimTime = windowStart:windowStop;
-        ind = find(metadata.StimParams.uniqStimIds == metadata.StimParams.StimOnTimes(1,i));
-        trialList(ind) = trialList(ind)+1;
-        f = data.roi(cc).dff(stimTime);
-        data.roi(cc).cyc(ind, trialList(ind),:) = f;
+    
+    
+    if metadata.StimParams.StimOnTimes(2,end) > TwoPhotonTimes(end)
+        for i = 1:metadata.StimParams.numberOfStims
+            stimTimeStart = find(TwoPhotonTimes > metadata.StimParams.StimOnTimes(2,i),1);
+            windowStart = stimTimeStart-preStimPeriod+1;
+            windowStop = stimTimeStart + stimDur + postPeriod;
+            stimTime = windowStart:windowStop;
+            ind = find(metadata.StimParams.uniqStimIds == metadata.StimParams.StimOnTimes(1,i));
+            trialList(ind) = trialList(ind)+1;
+            f = data.roi(cc).dff(stimTime);
+            data.roi(cc).cyc(ind, trialList(ind),:) = f;
+        end
+    else
+       numTrial= floor(size(metadata.StimParams.StimOnTimes,2)/metadata.StimParams.uniqStims);
+       if (metadata.StimParams.StimOnTimes(2,metadata.StimParams.uniqStims*numTrial)+ (stimDur + postPeriod)/metadata.TwoPhoton.rate) > TwoPhotonTimes(end)
+           numTrial = numTrial-1;
+       end
+       for i = 1:metadata.StimParams.uniqStims*numTrial
+            stimTimeStart = find(TwoPhotonTimes > metadata.StimParams.StimOnTimes(2,i),1);
+            windowStart = stimTimeStart-preStimPeriod+1;
+            windowStop = stimTimeStart + stimDur + postPeriod;
+            stimTime = windowStart:windowStop;
+            ind = find(metadata.StimParams.uniqStimIds == metadata.StimParams.StimOnTimes(1,i));
+            trialList(ind) = trialList(ind)+1;
+            f = data.roi(cc).dff(stimTime);
+            data.roi(cc).cyc(ind, trialList(ind),:) = f;
+        end
     end
 end
 

@@ -1,16 +1,20 @@
 %% switch board for analysis variable
 analysisParams = struct;
 %which type of stimulus should it run
-analysisParams.stimType = 1; % 1 = driftingGrating, 2 = OriSf, 3 = OriTf, 4 = Patch, 5 = bino
-analysisParams.dataType = 1; %data type: 1 = cells, 2 = axons, 3 = spines
+analysisParams.stimType = 1; % 1 = driftingGrating, 2 = OriSf, 3 = OriTf, 4 = Patch, 5 = bino, 6 = spontaneous;
+analysisParams.dataType = 3; %data type: 1 = cells, 2 = axons, 3 = spines
 
 %what should it do?
-analysisParams.reloadData = 1; %should you reload from suite2p/Miji and do baselining?
+analysisParams.reloadData =1; %should you reload from suite2p/Miji and do baselining?
 analysisParams.reanalyse = 1; %should you reanalyse the data or just plot?
+analysisParams.reanalysePop = 1;
+if analysisParams.reanalyse 
+    analysisParams.reanalysePop = 1;
+end
 analysisParams.select = 1; %load only selected data (1, marked in column run) or all data (0)?
 analysisParams.plotROIs = 1;   %should you plot traces for all resp ROIs?
 analysisParams.plotRespROIsOnly = 0; %should you also plot traces for all non-resp ROIs?
-analysisParams.server = 1; %load from the server (1) or the raid (0)
+analysisParams.server =0; %load from the server (1) or the raid (0)
 analysisParams.makeROIs = 1;
 
 %analysisParameters
@@ -19,10 +23,8 @@ analysisParams.fraction = 0.5;
 analysisParams.predictor = 0;
 analysisParams.shufflenum = 100;
 analysisParams.field = 'dff'; %rawRes for spines
-analysisParams.windowStart = 0;
-analysisParams.windowStop = 2;
-analysisParams.pre = 1;
-analysisParams.manual = 1; %do manual ROIs instead of suite2p registration
+analysisParams.manual = 0; %do manual ROIs instead of suite2p registration for cells
+analysisParams.pre = 0;
 
 %% list all experiments 
 
@@ -30,7 +32,7 @@ computer = getenv('COMPUTERNAME');
 switch computer
     case 'DF-LAB-WS38'
         filePath = 'F:\Organization\Animals\';
-    case 'DF-LAB-WS22'
+    case 'DF-LAB-WS40'
         filePath = 'Z:\Hannah\';
 end
 
@@ -60,6 +62,8 @@ switch analysisParams.stimType
         [~, xls_txt, xls_all]=xlsread([filePath file], 'Retinotopy'); %switch here between Patches and Retinotopy!
     case 5
         [~, xls_txt, xls_all]=xlsread([filePath file], 'binocular');
+    case 6
+        [~, xls_txt, xls_all]=xlsread([filePath file], 'spontaneous');
 end
 
 exp_info = findExpInfo(xls_txt, xls_all);
@@ -80,7 +84,6 @@ if analysisParams.dataType == 1 && analysisParams.manual == 1
     getSubcellularRegistration(analysisParams, exp_info, ind)
     getROIsCells(analysisParams, exp_info, ind)
 end
-
 
 for i = ind
     disp(['Currently analyzing: Ferret ' char(exp_info.animal{i}) ', Experiment ' char(exp_info.exp_id{i})])
@@ -112,6 +115,8 @@ for i = ind
     if analysisParams.stimType == 4
         PatchType = char(exp_info.stimulus{i});
         Patches(analysisParams)
+    elseif analysisParams.stimType == 6
+        SpontaneousCells(analysisParams);
     else
         GratingAnalysis(analysisParams);
     end

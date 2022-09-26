@@ -60,9 +60,9 @@ for slice = 1:numSlices
         if id < 15
             template(:,:,fileNum) = mean(imgStack(:,:,id:id+35),3);
         elseif id > size(imgStack,3)-25
-            template(:,:,fileNum) = mean(imgStack(:,:,id-20:end),3);
+            template(:,:,fileNum) = mean(imgStack(:,:,id-15:end),3);
         else
-            template(:,:,fileNum) = mean(imgStack(:,:,id-15:id+25),3);
+            template(:,:,fileNum) = mean(imgStack(:,:,id-14:id+25),3);
         end
     end
     [a,id] = max(sum(sum(template,1),2));

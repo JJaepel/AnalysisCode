@@ -1,4 +1,4 @@
-function [corrCoeff, corrTrialsMatched, corrTrialsOrtho] = trialPatternCorrelation(analysis, metadata, field, saveDirectory)
+function [cellPatternSorted,corrCoeff, corrTrialsMatched, corrTrialsOrtho] = trialPatternCorrelation(analysis, metadata, field)
 % Computs correlation of patterns of cells across trials independent of the
 % stimulus
 % Input:
@@ -52,17 +52,6 @@ prefOri = [analysis.(field).roi(respCells).preferredOrientation];
 [OriSorted, OriOrder] = sort(prefOri);
 cellPatternSorted = cellPattern(OriOrder',:);
 
-figure
-imagesc(cellPatternSorted)
-c = gray;
-c = flipud(c);
-colormap(c)
-colorbar
-xlabel('Trial number')
-ylabel('Cell number')
-set(gcf, 'color', 'w');
-saveas(gcf, fullfile(saveDirectory, 'TrialResponses.png'))
-
 %% for each trial pair, do the correlation
 corrCoeff = zeros(numTrials, numTrials);
 for i = 1:numTrials
@@ -71,17 +60,6 @@ for i = 1:numTrials
     end
 end
 
-%% visualize the pattern in a corelogramm
-figure
-imagesc(corrCoeff)
-colormap(redblue)
-caxis([-1 1])
-colorbar
-set(gca, 'YDir', 'normal')
-xlabel('Trial Number')
-ylabel('Trial number')
-set(gcf, 'color', 'w');
-saveas(gcf, fullfile(saveDirectory, 'CorrelationTrialPatterns.png'))
 
 %% calculate indices for matched pairs and orthogonal pairs
 orthTrialShift = (metadata.StimParams.uniqStims-1)/4;
@@ -131,13 +109,3 @@ for stimNr = 1:(metadata.StimParams.uniqStims-1)
 end
 %add all ortho values together
 corrTrialsOrtho = [corrTrialsOrthoLeft; corrTrialsOrthoRight];
-
-figure
-subplot(1,2,1)
-boxplot(corrTrialsMatched(:), 'labels', 'Matched')
-ylim([-0.5 1])
-subplot(1,2,2)
-boxplot(corrTrialsOrtho(:), 'labels', 'Orthogonal')
-ylim([-0.5 1])
-set(gcf, 'color', 'w');
-saveas(gcf, fullfile(saveDirectory, 'OrthoVsMatchedTrialPatterns.png'))

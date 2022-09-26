@@ -3,10 +3,10 @@ function  FijiSpineROIFct(server, animal, name, level)
 computer = getenv('COMPUTERNAME');
 switch computer
     case 'DF-LAB-WS38'
-        RaidDir = 'F:\Data\';
+        RaidDir = 'F:\';
         ServerDir = 'Z:\Juliane\';
     case 'DF-LAB-WS22'
-        RaidDir = 'C:\Data\';
+        RaidDir = 'C:\';
         ServerDir = 'Z:\Juliane\';
 end
 

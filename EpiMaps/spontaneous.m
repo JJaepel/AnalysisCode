@@ -5,8 +5,8 @@ clear all
 % experiment to run and whether you need to reload, what filtering and how
 % much to downsample
 % variables of experiment
-animal = 'F2564_2021-08-26';
-expt_id =2;
+animal = 'F2569_2021-09-03';
+expt_id =3;
 sp2id = expt_id;
 
 % variables for running - need to be 1 the first time it is run and can be
@@ -25,9 +25,9 @@ verbose = 0; %change to 1 if you want to see all event locations and traces
 computer = getenv('COMPUTERNAME');
 switch computer
     case 'DF-LAB-WS38'
-        EpiDir = 'F:\Data\Epi\';
-        Sp2Dir = 'F:\Data\Spike2Data\';
-        SaveDir = 'F:\Data\ImageAnalysis\';
+        EpiDir = 'Z:\Juliane\Data\Epi\';
+        Sp2Dir = 'Z:\Juliane\Data\Spike2Data\';
+        SaveDir = 'Z:\Juliane\Data\ImageAnalysis\';
         lowMemory = 0;
     case 'DF-LAB-WS22'
         EpiDir = 'Z:\Juliane\Data\Epi\';
@@ -135,11 +135,11 @@ end
 %clear rawF
 
 %% make seed-based correlation maps
-indices = 1:(size(data.dff,1)*size(data.dff,2));
-indicesMask = find(analysis.maskBV ==1);
-[activeFrameStack,numberOfActiveEvents,eventOnset,eventDuration] = getActiveFrames(data.dff);
-seedBasedCorr(data.filt(:,:,eventOnset), indices);
-seedBasedCorrDelay(data.high(:,:,1:end-1), indices,5);
+% indices = 1:(size(data.dff,1)*size(data.dff,2));
+% indicesMask = find(analysis.maskBV ==1);
+% [activeFrameStack,numberOfActiveEvents,eventOnset,eventDuration] = getActiveFrames(data.dff(:,:,1:end-3));
+% seedBasedCorr(data.filt(:,:,eventOnset), indices);
+% seedBasedCorrDelay(data.high(:,:,1:end-1), indices,5);
 
 %% 4.) Get traces of each area
 %data is goign to be turned into integers, but was normalized and filtered
@@ -201,7 +201,7 @@ doCrossCorrelation(analysis.(field).eventsA19,analysis.(field).A19Trace,analysis
 % for i = 1:length(windowTime)
 % doLocalCrossCorrelation(analysis.(field).eventsV1,analysis.(field).eventsA19,windowTime,metadata, 'onset', saveDirectory, 'V1'); %WORK IN PROGRESS
 % end
-%% get ative Framstes, compute correlations of the imaging stack and show it
+%% 7.) get ative Framstes, compute correlations of the imaging stack and show it
 % Computes correlations of the imaging stack (spontaneous, response, signal, or noise). 
             % The image dimensions can be "N" dimensions, but must be organized such that they are:
             %    *Spontaneous: Should be (x,y,t). The active frames are automatically extracted. 
@@ -209,5 +209,6 @@ doCrossCorrelation(analysis.(field).eventsA19,analysis.(field).A19Trace,analysis
             %                  to (x,y,n), where n is all images
             %    *Signal:      Takes in a (x,y,nCond,nTrials,t), averages along the fourth dimension,
             %    *Noise        Computes correlations along nCond.
-corrTable = computeCorrelationTable(activeFrameStack,expParam.ROI);
-showCorrelationStructure(corrTable,expParam, saveDirectory)
+[activeFrameStack,numberOfActiveEvents,eventOnset,eventDuration] = getActiveFrames(data.field(:,:,1:end-3));
+corrTable = computeCorrelationTable(activeFrameStack,analysis.ROI);
+showCorrelationStructure(corrTable,analysis.ROI, analysis, saveDirectory)

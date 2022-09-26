@@ -1,4 +1,4 @@
-function HI = calculateHI(analysis, ori_sel, level, data, field)
+function HI = calculateHI(PopAnalysis,analysis, level, data, field)
 % Calculates homeogeneity index for a field of view for a variety of radiuses 
 %
 % Input:
@@ -12,7 +12,7 @@ function HI = calculateHI(analysis, ori_sel, level, data, field)
 % radiuses
 %
 
-
+ori_sel = find([analysis.(field).roi.OSIFit] > 0.2 & [analysis.(field).roi.isResponseSignificant] == 1);
 
 radius = linspace(0,250,6);
 if level == 1 
@@ -22,7 +22,7 @@ HI = zeros(length(ori_sel),length(radius));
 preferences = [analysis.(field).roi(ori_sel).preferredOrientation];
 for dis = 1:length(radius)-1
     for cellID = 1:length(ori_sel)-1
-        distances = analysis.(field).distROIs(cellID, :);
+        distances = PopAnalysis.(field).distOriROIs(cellID, :);
         withinRadius1 = distances >= radius(dis);
         withinRadius2 = distances < radius (dis+1);
         withinRadius = withinRadius1&withinRadius2;

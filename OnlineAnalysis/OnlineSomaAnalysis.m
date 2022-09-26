@@ -1,13 +1,13 @@
 % set up directory and files
-animalnum = 'F2555';
-file2p  = 8;
-fileSpk = 2;
-date = '2021-08-04'; 
+animalnum = 'F2726';
+file2p  =8;
+fileSpk =8;
+date = '2022-09-02'; 
 useLessTrials = 0;    
 
 prestimPeriod = 0;    
 stimDur = 2; %stimdur
-postPeriod = 1;  
+postPeriod = 0;  
 
 % Spk2dir = ['C:\Spike2Data\',date2,'\'];
 
@@ -103,7 +103,7 @@ numStims = ntrials*length(uniqStims);
 stimOn2pFrame = zeros(1,numStims);
 
 %convert stim times into frame times
-for ii = 1:numStims
+for ii = 2:numStims
     id1 = stimOn(ii)<twophotontimes;
     id2 = stimOn(ii)>twophotontimes;
     ind = id1.*id2;
@@ -139,7 +139,7 @@ for cc = 1:length(ce)
     ce(cc).dff = dff;
     
     trialList = zeros(1,length(uniqStims));
-    for ii = 1:numStims
+    for ii = 2:numStims-1
         stimTime2 = stimOn2pFrame(ii)+1-prestimPeriod2:stimOn2pFrame(ii)+stimDur2+postPeriod2;
         ind = find(uniqStims==stimID(ii));
         trialList(ind) = trialList(ind)+1;

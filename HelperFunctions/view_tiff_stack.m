@@ -140,18 +140,12 @@ switch event.Character
             set(hf,'Position',[temp.Position(1) temp.Position(2) figLength 1.03*figLength*size(data,1)/size(data,2)]);
         end
     case 'm' % make a movie
-        acqfps =1;
+        acqfps =10;
         [avi_fname,avi_path]=uiputfile('tiff_stack.avi','save stack as');
         writerObj = VideoWriter([avi_path avi_fname],'MPEG-4');
         writerObj.FrameRate = acqfps;
         open(writerObj);
-        allFrames=isequal(input(['Do you want to save all individual frames (Y) or a time speed up?: '],'s'),'Y');
-        if allFrames
-            speed_factor = 1;
-        else
-            writerObj.FrameRate =23;
-            speed_factor=input('Select speed to save movie at: ');
-        end
+        speed_factor=input('Select speed to save movie at: ');
         frame_bounds=input('Select [start_frame stop_fram], 0 for all frames: ');
         if frame_bounds==0
             frame_bounds=[0 nFrames];

@@ -2,9 +2,9 @@ close all
 clear all
 addpath(genpath('F:\Code\FromMadineh\ScanImage'));
 
-animal = 'F2635_2022-02-17';
-expt_id =15;
-sp2id = 16;
+animal = 'F2380_2019-11-07';
+expt_id =1;
+sp2id = 1;
 
 close all
 EpiDir = 'Z:\Juliane\Data\Epi\';

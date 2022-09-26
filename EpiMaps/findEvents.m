@@ -16,9 +16,6 @@ threshold = mean(expTrace(:));
 peakThresholded = find(peaksValue>threshold);
 peakTime = peakTime(peakThresholded);
 
-peakTimes = zeros(length(expTrace),1);
-peakTimes(peakTime) = 1;
-
 %% 2.) Find event onset and offset
 dydx = gradient(expTrace);
 derivatives = zscore(dydx);

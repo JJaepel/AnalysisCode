@@ -486,8 +486,12 @@ if analysisParams.plotROIs
         close gcf
     end
     for i = 1:length(data.roi)
-        PlotTrialStimResponse(metadata, analysis, field, i)
-        saveas(gcf, fullfile(ROIsaveDirectory, ['ROI_Nr_' num2str(i) '_TrialStimResp_.png']))
+        PlotTrialStimResponseOri(metadata, analysis, field, i, ROIsaveDirectory)
+        close gcf
+    end
+    for i = 1:length(data.roi)
+        Plot2DResponse(metadata, analysis, field, i)
+        saveas(gcf, fullfile(ROIsaveDirectory, ['ROI_Nr_' num2str(i) '_2DStimResp_.png']))
         close gcf
     end
 end

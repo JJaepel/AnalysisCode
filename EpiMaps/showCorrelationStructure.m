@@ -18,7 +18,7 @@ function showCorrelationStructure(corrTable,ROI, analysis, saveDirectory)
     figure; 
     % Show sorted correlation table
     subplot(1,3,1); 
-        [~,sortingMatrix] = sort(analysis.sortingMatrix(analysis.maskBVActive(:)));
+        [~,sortingMatrix] = sort(analysis.sortingMatrix(analysis.maskBV(:)));
         sortedCorrTable = corrTable(sortingMatrix(:),:);
         sortedCorrTable = sortedCorrTable(:,sortingMatrix(:));
         imagesc(sortedCorrTable); 

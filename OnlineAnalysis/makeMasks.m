@@ -44,6 +44,7 @@ negMask(negMask < 0) = 1;
 
 figure
 imagesc(tempMask)
+saveas(gcf, [saveDirectory, 'Mask2ndPCA_Raw.png'])
 colorbar
 if verbose
     posMask19=isequal(input('Are positive correlations in area 19? (Y/N): ','s'),'Y');
@@ -59,5 +60,4 @@ else
     analysis.maskV1 = negMask;
     analysis.maskA19 = posMask;
 end
-saveas(gcf, [saveDirectory, 'Mask2ndPCA_Raw.png'])
 close gcf

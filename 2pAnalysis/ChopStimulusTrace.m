@@ -7,10 +7,10 @@ function [analysis, metadata, data] = ChopStimulusTrace(analysis,metadata,data,l
     else
         % defaults for values
         windowStart= 0;  % choose the entire stim period
-        windowStop = 0.5;    % choose the entire stim period
+        windowStop = metadata.StimParams.stimDuration;    % choose the entire stim period
         tfield = field; % default to field name as analysis name
-        pre=0;
-        post=1;
+        pre=1;
+        post=metadata.StimParams.isi;
         skipTrial=0;
         baseline=false;
         for i = 1:2:length(varargin)
@@ -49,7 +49,7 @@ function [analysis, metadata, data] = ChopStimulusTrace(analysis,metadata,data,l
     analysis.(tfield).roi = struct;
 
     windowStartIdx= round(windowStart * metadata.TwoPhoton.rate +offsetPre+1);
-    windowStopIdx = round(windowStop * TwoPhotonRate + offsetPre);
+    windowStopIdx = round(windowStop * TwoPhotonRate + offsetPre+1);
     if windowStartIdx == windowStopIdx
         windowStopIdx = analysis(tfield).stimStop;
     end
@@ -106,7 +106,7 @@ function [analysis, metadata, data] = ChopStimulusTrace(analysis,metadata,data,l
             for i=1:length(data.roi)
                 selectedFramesTrace = (stimStarts(stimIndex)-offsetPre):(stimStops(stimIndex)+offsetPost);
                 if max(selectedFramesTrace) <= length(data.roi(i).(field))
-                    analysis.(tfield).roi(i).stimResponseTrace(stimID,trialNumber,:)= data.roi(i).(field)(selectedFramesTrace);
+                    analysis.(tfield).roi(i).stimResponseTrace(stimID,trialNumber,:)= smooth(data.roi(i).(field)(selectedFramesTrace));
                 else
                     analysis.(tfield).roi(i).stimResponseTrace(stimID,trialNumber,:) = zeros(1,1,length(selectedFramesTrace));
                 end
@@ -132,22 +132,20 @@ function [analysis, metadata, data] = ChopStimulusTrace(analysis,metadata,data,l
             analysis.(tfield).roi(i).avgResponseTrace(stimID,:) = mean(traces, 1);
             n= size(analysis.(tfield).roi(i).stimResponseTrace,2);
             y=analysis.(tfield).roi(i).stimResponseTrace(stimID,:,:);
-            analysis.(tfield).roi(i).SEMResponseTrace(stimID,:) = std(y,[],2)/sqrt(n);
             analysis.(tfield).roi(i).avgStimResponse(stimID,:) = mean(analysis.(tfield).roi(i).avgResponseTrace(stimID,analysisPeriod),2);
+            analysis.(tfield).roi(i).StimResponse(stimID,:)=mean(squeeze(analysis.(tfield).roi(i).stimResponseTrace(stimID,:,:)),2);
+            analysis.(tfield).roi(i).SEMResponseTrace(stimID,:) = std(y,[],2)/sqrt(n);
+            for trialNumber= 1:metadata.StimParams.numTrials
+                [pks, ~] = findpeaks(smooth(traces(trialNumber,:)),linspace(1,size(traces,2),size(traces,2)),'SortStr','descend');
+                if ~isempty(pks)
+                    analysis.(tfield).roi(i).peakResponse(stimID,trialNumber) = pks(1);
+                else
+                    analysis.(tfield).roi(i).peakResponse(stimID,trialNumber) = NaN;
+                end
+            end
             n= size(analysis.(tfield).roi(i).stimResponseTrace,2);
-            y=analysis.(tfield).roi(i).avgStimResponse(stimID,:);
-            analysis.(tfield).SEMCellResponses(i,stimID)= std(y,[],2)/sqrt(n);
-            analysis.(tfield).avgCellResponses(i,stimID)= mean(analysis.(tfield).roi(i).avgStimResponse(stimID,:),2);
-        end
-    end
-
-    for i = 1:length(data.roi)
-        for stimID = 1:metadata.StimParams.uniqStims-1
-            analysis.(tfield).roi(i).avgStimResponse(stimID) = analysis.(tfield).roi(i).avgStimResponse(stimID) -analysis.(tfield).roi(i).avgStimResponse(end) ;
-            analysis.(tfield).roi(i).avgResponseTraceRaw(stimID,:) = analysis.(tfield).roi(i).avgResponseTrace(stimID,:);
-            analysis.(tfield).roi(i).avgResponseTrace(stimID,:) = analysis.(tfield).roi(i).avgResponseTrace(stimID,:) - analysis.(tfield).roi(i).avgResponseTrace(end,:);
-            analysis.(tfield).roi(i).Fb(stimID,:)= mean(analysis.(tfield).roi(i).stimResponseTrace(stimID,:,1:analysisPeriod(1)-1),3);
-
+            analysis.(tfield).SEMCellResponses(i,stimID)= std(analysis.(tfield).roi(i).StimResponse(stimID,:),[],2)/sqrt(n);
+            analysis.(tfield).avgCellResponses(i,stimID)= mean(analysis.(tfield).roi(i).StimResponse(stimID,:),2);
         end
     end
     analysis.(tfield).preTrialTime=pre;

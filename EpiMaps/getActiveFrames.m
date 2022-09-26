@@ -18,7 +18,7 @@ function [activeFrameStack,numberOfActiveEvents,eventOnset,eventDuration] = getA
         expParam.ROI = reshape(expParam.ROI,[x*y 1]);
         expParam.ROI = logical(expParam.ROI);
     end
-    if(~isfield(expParam,'activityThreshold')),              expParam.activityThreshold        = 0.05;        end % how many standard deviations about the mean response that is needed for a pixel to be considered active
+    if(~isfield(expParam,'activityThreshold')),              expParam.activityThreshold        = 2;        end % how many standard deviations about the mean response that is needed for a pixel to be considered active
     if(~isfield(expParam,'thresholdForActivePixels')),       expParam.thresholdForActivePixels = 0.25;        end % the proportion of pixels that need to be active in an "active" frame
     if(~isfield(expParam,'averageAllFramesInSingleEvents')), expParam.averageAllFramesInSingleEvents = true; end % whether to collapse consecutive active frames into a single event
     if(~isfield(expParam,'thresholdForActivation')) % threshold for a pixel to be considered active. By default is X*standard deviations above the mean. An absolute or percentile threshold could work.

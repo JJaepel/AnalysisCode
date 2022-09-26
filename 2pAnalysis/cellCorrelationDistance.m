@@ -1,4 +1,4 @@
-function [shortDistanceCorr, longDistanceCorr] = cellCorrelationDistance(analysis, data, metadata, field, saveDirectory)
+function [shortDistanceCorr, longDistanceCorr] = cellCorrelationDistance(analysis, data, metadata, field, umperpixel)
 % Computs correlation of cells independent of the stimulus within certain
 % distances
 % Input:
@@ -46,7 +46,7 @@ for A = 1:length(data.roi)
         %calculate distance
         dist_x = abs(data.roi(A).xPos - data.roi(B).xPos);
         dist_y = abs(data.roi(A).yPos - data.roi(B).yPos);
-        distROIs(A,B) = sqrt(dist_x^2 + dist_y^2)*metadata.umperpixel;     
+        distROIs(A,B) = sqrt(dist_x^2 + dist_y^2)*umperpixel;     
     end
 end
 
@@ -65,15 +65,4 @@ longDistPairs = intersect(morethanDistPairs, removeDistPairs);
 %select into short and long distance correlations
 shortDistanceCorr = corrCoeff(shortDistPairs);
 longDistanceCorr = corrCoeff(longDistPairs);
-
-%% 3. Plot the data
-figure
-subplot(1,2,1)
-boxplot(shortDistanceCorr(:), 'labels', '< 100 um')
-ylim([-1 1])
-subplot(1,2,2)
-boxplot(longDistanceCorr(:), 'labels', '300-400 um')
-ylim([-1 1])
-set(gcf, 'color', 'w');
-saveas(gcf, fullfile(saveDirectory, 'ResponseCorrelationDistance.png'))
 end

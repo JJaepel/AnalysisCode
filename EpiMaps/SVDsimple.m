@@ -46,7 +46,8 @@ if verbose
     implay(mixedfilters);
 end
 
-badPCs = input('bad PCs= (example "[1:2]")'); 
+%badPCs = input('bad PCs= (example "[1:2]")'); 
+badPCs = [];
 PCuse=setdiff([1:nPCs],badPCs); 
 mixedfilters2 = reshape(mixedfilters(:,:,PCuse),npix,length(PCuse));  
 mov = mixedfilters2 * diag(CovEvals(PCuse).^(1/2)) * mixedsig(PCuse,:);  
