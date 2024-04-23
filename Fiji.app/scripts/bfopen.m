@@ -265,11 +265,11 @@ for s = 1:numSeries
     end
 
     % extract metadata table for this series
-    metadataList = r.getMetadata();
+    %metadataList = r.getMetadata();
 
     % save images and metadata into our master series list
     result{s, 1} = imageList;
-    result{s, 2} = metadataList;
+    result{s, 2} = [];%metadataList;
     result{s, 3} = colorMaps;
     result{s, 4} = r.getMetadataStore();
     fprintf('\n');

@@ -1,12 +1,24 @@
 function subcellularRegistration(server, animal, name, level)
 
-%current version will be based on SI2016 format and BigTiff reader
+%This function registers the raw data and writes the new tif files in the 
+%folder. Current version will be based on SI2016 format and BigTiff reader
 %options to use downsample technique or nonrigid method or to use red
-%channel to do registration
+%channel to do registration.
+%
+%Input:
+% -server: run it on RAID (prefered) or server?
+% -animal: name of animal to define folder
+% -name: exp name to define folder
+% -level: is it a volume imaging?
+%
+%Output:
+%- starts the registration, which will produce the registered tiffs, as
+%well as the projection in the given folder
 
+
+%% Step 0: Set some parameters
 %type
-regtype = 'downsample'; 
-%regtype = 'dft';  
+regtype = 'downsample'; %Alternatives: 'dft'  
  
 %downsample opts
 downsampleRates = [1/8, 1/4, 1/2, 1];
@@ -14,10 +26,8 @@ maxMovement = 1/4;
 
 %1/2 spatial resampling
 imagSpatSamp = 0; 
-%if 2nd channel
-useCh2template = 0; %%%% for structures (green & red)
 
-%% data location and tfile folders
+%% Step 1: Data location and tfile folders
 if server == 0
     drive = 'F:\';
 else 
@@ -28,35 +38,45 @@ TwoPhontondir = [drive 'Data\2P_Data\'];
 tifDirectory= [TwoPhontondir animal filesep name];
 baseTifDir = [tifDirectory '\Registered'];
 
+%if it is volume images, you need to go through all the slices individually
 if level
     numSlices = 5;
 else
     numSlices = 1;
 end
-    
-%%
 
+%go through one slice at the time
 for slice = 1:numSlices
-    %%%%%%go to directory and make folders
+    
+    %go to directory and make folders
     if ~exist(baseTifDir, 'dir')
         % make new file directory
         mkdir(baseTifDir); 
     end
     outputDir = [baseTifDir '\slice' num2str(slice) '\'];
     mkdir(outputDir)
-    disp(['reading in data from ' tifDirectory ' and grabbing templates']);
     cd(tifDirectory);
-    files  = dir('*.tif');
-
-    %%%%%%find brightest image across a few stacks
-    tic;
+    
+    %% Step 2: Make the template
+    disp(['reading in data from ' tifDirectory ' and grabbing templates']);
     template = [];
+    
+    %get all the tif files in the directory
+    files  = dir('*.tif');
+    
+    tic;
+    %go through the first files
     for fileNum = 1:4 %fix or do all? 
-
+        
+        %read in the data using ScanImageTiffReader
         imgStack = ScanImageTiffReader([cd,'/',files(fileNum).name]).data;
         imgStack = squeeze(imgStack);
         dat = squeeze(squeeze(sum(sum(imgStack,1),2)));
-        [a,id] = max(dat);
+        
+        %which image has the highest brightness?
+        [~,id] = max(dat);
+        
+        %find the surrounding 40 images and make the mean image 
         if id < 15
             template(:,:,fileNum) = mean(imgStack(:,:,id:id+35),3);
         elseif id > size(imgStack,3)-25
@@ -65,31 +85,35 @@ for slice = 1:numSlices
             template(:,:,fileNum) = mean(imgStack(:,:,id-14:id+25),3);
         end
     end
-    [a,id] = max(sum(sum(template,1),2));
-    template = squeeze(template(:,:,id));
+    
+    %which template from the different files is the brightest
+    [~,id] = max(sum(sum(template,1),2));
+    template = squeeze(template(:,:,id)); %make this as your template
+    
+    %rotate & flip the template for saving
     templateRot = flip(template);
     templateRot = imrotate(templateRot,-90);
-    if imagSpatSamp
-        template = imresize(template,.5);
-    end
     
+    %save it
     disp('Saving template');
     filename = [outputDir 'template.tif'];
     imwrite(uint16(templateRot),filename,'tif','writemode','overwrite');
     toc;
+    
+    %resize it if downsampling
+    if imagSpatSamp
+        template = imresize(template,.5);
+    end
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    %%%%%%begin working files
+    %% Step 3: Read & Downsample files if selected
+    % go through all files, one after each other
     for fileNum = 1:length(files)
-
+        
+        %read om the file
         imgStack = ScanImageTiffReader([cd,'/',files(fileNum).name]).data;
-% % % %                 [header,imgStack] =opentif(files(fileNum).name);
-% % % %                 imgStack = tiff_reader(files(fileNum).name);
-
-
         imgStack = squeeze(imgStack);
 
-        %%%%%%2x spatial downsampling
+        %2x spatial downsampling if selected
         if imagSpatSamp
             resamppx = size(imgStack,1)/2;
             for frnum = 1:size(imgStack,3)
@@ -102,7 +126,7 @@ for slice = 1:numSlices
             disp(['spat resamp and thresh done'])
         end
 
-        %%%%%%split channels if needed or wanted
+        %split channels if needed
         if level
             imgStack = imgStack(:,:,slice:numSlices:end);
         else
@@ -111,12 +135,15 @@ for slice = 1:numSlices
         [height,width,depth] = size(imgStack);
 
 
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %% Step 4: Do the registration
+        %Type A: Downsample: downsample in different rates (spatially) and find the
+        %best registration for these areas
         if strcmp(regtype,'downsample')
-
             tic;
             regOffsetsX = zeros(depth,1);
             regOffsetsY = zeros(depth,2);
+            
+            %go through all downsample Rates to find the optimal Offsets
             for r=1:length(downsampleRates)
                 sampRate = downsampleRates(r);
                 if r>1
@@ -125,12 +152,11 @@ for slice = 1:numSlices
                 disp(['registering images, iteration ' num2str(r)]);
                 downHeight = height*sampRate;
                 downWidth = width*sampRate;
-
+                
+                %resize the template acccordingly 
                 templateImg = imresize(template, [downHeight,downWidth],'bilinear');
                 for d=1:depth
-
                     regImg = imresize(imgStack(:,:,d), [downHeight,downWidth],'bilinear');
-
                     if r==1
                         %initial offset
                         minOffsetY = -round(maxMovement*downHeight/2);
@@ -138,7 +164,6 @@ for slice = 1:numSlices
 
                         minOffsetX = -round(maxMovement*downWidth/2);
                         maxOffsetX = round(maxMovement*downWidth/2);
-
                     else
                         %we are refining an earlier offset
                         minOffsetY = regOffsetsY(d)*sampRate - sampRate/prevsampRate/2;
@@ -182,6 +207,7 @@ for slice = 1:numSlices
             end
 
             disp('Registration offsets in (Y,X) format:');
+            %now do the registration
             for d=1:depth
                 img = imgStack(:,:,d);
                 shiftedY1 = 1+max(regOffsetsY(d),0);
@@ -202,45 +228,40 @@ for slice = 1:numSlices
             toc; 
 
 
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %Type B: Non-rigid
         elseif strcmp(regtype,'nonrigid')
-
+            %set the options
             options_rigid = NoRMCorreSetParms('d1',size(imgStack,1),'d2',size(imgStack,2),...
                 'grid_size',[128,128],'overlap_pre',64,'bin_width',50,'max_shift',25,'us_fac',50,'iter',1);
             options_nonrigid.use_parallel = 1;
 
             tic; 
-            [M_final,shifts,~] = normcorre(imgStack,options_rigid,template); 
+            %correlate the stack to the template
+            [M_final,~,~] = normcorre(imgStack,options_rigid,template); 
             imgStack = M_final;
-            clear M_final
-            if useCh2template
-                %applying red shifts to green
-                M_final = apply_shifts(imgStack,shifts,options_rigid);
-                ch1Stack = M_final;
-                clear M_final
-            end
             toc;
+            
+        %Type C: Dft, not implemented!!!
         elseif strcmp(regtype,'dft')
             disp('Lets try something new')
         end
 
 
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%
-        %%%%save current imgStack to outputDir
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %% Step 5: Save the stacks as new files
         disp('Saving tiff stack');
+        %get fo;e ma,e
         filename = [outputDir '\stack_c1_' sprintf('%02i',fileNum) '.tif'];
         for d = 1:depth
+            %if it its the first frame, use overwrite, else just append it
+            %with the other frames
             if d==1
                 imwrite(uint16(imgStack(:,:,d)'),filename,'tif','writemode','overwrite');
-
             else
                 imwrite(uint16(imgStack(:,:,d)'),filename,'tif','writemode','append');
             end
         end
 
         disp(['Done, Saved in  ', outputDir]);
-
     end
 end
 

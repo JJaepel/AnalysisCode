@@ -15,7 +15,7 @@ function [M_final,shifts,template,options] = normcorre(Y,options,template)
 % shifts:           originally calculated shifts
 % template:         calculated template
 
-%% first determine filetype
+%% Step 1: Determine filetype
 
 if isa(Y,'char')
     [~,~,ext] = fileparts(Y);
@@ -49,7 +49,7 @@ end
 
 nd = length(sizY)-1;                          % determine whether imaging is 2d or 3d
 sizY = sizY(1:nd);
-%% set default parameters if not present
+%% Step 2: Set default parameters if not present
 
 defoptions.memmap = false;                     % save motion corrected file in a mat file
 if nd == 2
@@ -121,7 +121,7 @@ else
     max_shift = min(options.max_shift,grid_size./mot_uf);
 end
 
-%% read initial batch and compute template
+%% Step 3: Read initial batch and compute template
 init_batch = min(T,init_batch);
 perm = randperm(T,init_batch);
 switch filetype
@@ -147,13 +147,13 @@ end
 
 [d1,d2,d3,~] = size(Y_temp);
 if nd == 2; d3 = 1; end
-%% setup grids for patches
+%% Step 4: Setup grids for patches
 
 [xx_s,xx_f,yy_s,yy_f,zz_s,zz_f,xx_us,xx_uf,yy_us,yy_uf,zz_us,zz_uf] = construct_grid(grid_size,mot_uf,d1,d2,d3,min_patch_size);
 shifts = struct('shifts',cell(T,1),'shifts_up',cell(T,1));
 temp_cell = mat2cell_ov(template_in,xx_us,xx_uf,yy_us,yy_uf,zz_us,zz_uf,overlap_post,sizY);
 
-%% precompute some quantities that are used repetitively for template matching and applying shifts
+%% Step 5: Precompute some quantities that are used repetitively for template matching and applying shifts
 Nr = cell(size(temp_cell));
 Nc = cell(size(temp_cell));
 Np = cell(size(temp_cell));

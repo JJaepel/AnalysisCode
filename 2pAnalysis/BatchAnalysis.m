@@ -5,6 +5,7 @@ analysisParams.stimType = 1; % 1 = driftingGrating, 2 = OriSf, 3 = OriTf, 4 = Pa
 analysisParams.dataType = 3; %data type: 1 = cells, 2 = axons, 3 = spines
 
 %what should it do?
+analysisParams.reregister =0; %should you reregister the data
 analysisParams.reloadData =1; %should you reload from suite2p/Miji and do baselining?
 analysisParams.reanalyse = 1; %should you reanalyse the data or just plot?
 analysisParams.reanalysePop = 1;

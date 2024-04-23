@@ -70,4 +70,4 @@ end
 
 set(gcf, 'Color', 'w')
 saveas(gcf, fullfile(saveDir, ['2D_TrialStimTrace_ROI_Nr_' num2str(roi) '.png']))
-%close gcf
+sssssssssssssssssssclose gcf

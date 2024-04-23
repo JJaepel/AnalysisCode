@@ -49,6 +49,8 @@ for nr= 1:length(ROIs)
     yRange = min(yVals):max(yVals);
     M = repmat(int16(ROImasks(yRange,xRange)), [1 1 size(tifStack,3)] );
     data.roi(nr).rawF = squeeze(squeeze(sum( sum( int16(tifStack(yRange,xRange,:)) .* M, 1 ), 2 ) ./ ROIsize))';
+    zeroPixel = find(data.roi(nr).rawF == 0);
+    data.roi(nr).rawF(zeroPixel) = 1;
 end
 clear tifStack
 end

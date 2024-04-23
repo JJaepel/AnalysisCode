@@ -30,6 +30,7 @@ end
 
 saveFile        = [saveDir filename];
 if ~exist(saveDir, 'dir')
+    
     % make new file directory
     mkdir(saveDir); 
 end

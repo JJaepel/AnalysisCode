@@ -1,5 +1,4 @@
 
-
 function plotcycRes2(cyc,cycn)
 [~,nt,nl] = size(cyc);
 inds = [1:nt];

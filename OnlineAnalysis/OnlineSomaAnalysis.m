@@ -1,8 +1,8 @@
 % set up directory and files
-animalnum = 'F2726';
-file2p  =8;
-fileSpk =8;
-date = '2022-09-02'; 
+animalnum = 'F2891';
+file2p  =4;
+fileSpk =file2p;
+date = '2024-03-12'; 
 useLessTrials = 0;    
 
 prestimPeriod = 0;    
@@ -139,7 +139,7 @@ for cc = 1:length(ce)
     ce(cc).dff = dff;
     
     trialList = zeros(1,length(uniqStims));
-    for ii = 2:numStims-1
+    for ii = 2:numStims-10
         stimTime2 = stimOn2pFrame(ii)+1-prestimPeriod2:stimOn2pFrame(ii)+stimDur2+postPeriod2;
         ind = find(uniqStims==stimID(ii));
         trialList(ind) = trialList(ind)+1;

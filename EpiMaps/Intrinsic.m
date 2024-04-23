@@ -4,8 +4,8 @@ clear all
 imageDirectory = 'Z:\Juliane\Data\Epi\'; 
 metaDirectory = 'Z:\Juliane\Data\Spike2Data\';
 analysisDir = 'Z:\Juliane\Data\ImageAnalysis\';
-name = 'F2726_2022-09-02'; 
-exptID =5;
+name = 'F2891_2024-03-14'; 
+exptID =4;
 sp2ID = exptID;
 
 %define parameters
